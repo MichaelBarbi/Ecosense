@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- SEO Meta -->
+        <meta name="description" content="{% block meta_description %}simulation-based IoT platform{% endblock %}">
+        <meta name="keywords" content="{% block meta_keywords %}IoT, environment, sensors, real-time devices{% endblock %}">
+        <meta name="author" content="{% block meta_author %}Ecosense team{% endblock %}">
+        <meta name="robots" content="index, follow">
+
+        <!-- CSRF protection for AJAX -->
+        <meta name="csrf-token" content="{{ csrf_token }}">
+
+        <!-- Title -->
+        <title>{% block title %}Ecosense{% endblock %}</title>
+
+        {% load static %}
+
+        <!-- Favicon -->
+        <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+        <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+
+        <!-- Custom CSS -->
+        {% block extra_css %}{% endblock %}
+    </head>
+
+    <body>
+        <!-- Navbar -->
+        {% comment  %}{% include "partials/navbar.html" %}{% endcomment %}
+
+        <!-- Messaggi (es. messaggi Django) 
+        {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %} -->
+
+        <!-- Contenuto principale -->
+        <main class="container mt-4">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        {% comment  %}{% include "partials/footer.html" %}{% endcomment  %}
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Custom JS -->
+        {% block extra_js %}{% endblock %}
+    </body>
+</html>
