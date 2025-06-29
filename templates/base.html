@@ -25,31 +25,37 @@
         <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
 
         <!-- Custom CSS -->
-        {% block extra_css %}{% endblock %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+        
+        {% block extra_css %}
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+            </style>
+        {% endblock %}
     </head>
 
-    <body>
+    <body style="background-color: #f8f9fa">
+
         <!-- Navbar -->
-        {% comment  %}{% include "partials/navbar.html" %}{% endcomment %}
+        {% if request.path != '/login/' and request.path != '/register/' %}
+            {% if user.is_authenticated and user.customer %}
+                {% include "navbar.html" %}
+            {% elif user.is_authenticated and user.staff %}
+                {% include "navbar_staff.html" %}
+            {% else %}
+                {% include "navbar/navbar.html" %}
+            {% endif %}
+        {% endif %}
 
-        <!-- Messaggi (es. messaggi Django) 
-        {% if messages %}
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %} -->
-
-        <!-- Contenuto principale -->
-        <main class="container mt-4">
-            {% block content %}{% endblock %}
-        </main>
+        <!-- Main -->
+        {% block content %}{% endblock %}
 
         <!-- Footer -->
-        {% comment  %}{% include "partials/footer.html" %}{% endcomment  %}
+        {% if request.path != '/login/' and request.path != '/register/' %}
+            {% include "footer.html" %}
+        {% endif %}
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 
         <!-- Custom JS -->
         {% block extra_js %}{% endblock %}
