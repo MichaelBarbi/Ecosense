@@ -39,7 +39,7 @@
         <!-- Navbar -->
         {% if request.path != '/login/' and request.path != '/register/' %}
             {% if user.is_authenticated and user.customer %}
-                {% include "navbar.html" %}
+                {% include "navbar/navbar.html" %}
             {% elif user.is_authenticated and user.staff %}
                 {% include "navbar_staff.html" %}
             {% else %}
