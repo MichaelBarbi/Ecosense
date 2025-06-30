@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect
 from .forms import CustomerRegistrationForm
 from .models import *
@@ -74,7 +74,10 @@ def register(request):
 
     return render(request, "register.html", {"form": form})
 
+# Logout
+def logoutView(request):
 
-
+    logout(request)
+    return redirect("home")
 
 
