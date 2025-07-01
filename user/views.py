@@ -1,15 +1,46 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from .forms import CustomerRegistrationForm
 from .models import *
 from shipping.models import ShippingAddress
 from django.db import IntegrityError
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
 
 # Customer login
-def loginPage(request):
+def loginView(request):
+
+    if request.method == "POST":
+        
+        form = AuthenticationForm(request, data=request.POST)
+        
+        if form.is_valid():
+
+            user = form.get_user()
+
+            # Remember me
+            if not request.POST.get("remember"):
+                request.session.set_expiry(0) # Session expires after closing the browser
+            else:
+                request.session.set_expiry(604800) 
+
+            login(request, user)
+            return redirect("home")
+
+    else:
+
+        # If user is alreasy logged, redirect him to home
+        if request.user.is_authenticated:
+            return redirect("home")
+
+        form = AuthenticationForm()
+
     ctx = {
-        "title": "Login"
+        "title": "Login",
+        "form": form
     }
 
     return render(request, template_name="login.html", context=ctx)
@@ -38,6 +69,13 @@ def register(request):
                 province = form.cleaned_data['province']
                 postalCode = form.cleaned_data['postalCode']
                 country = form.cleaned_data['country']
+
+                # Password validation with native auth validators
+                try:
+                    validate_password(password, user=None)
+                except ValidationError as e:
+                    form.add_error('password', e)
+                    raise Exception("Password validation failed")
 
                 # Create the user
                 user = User.objects.create_user(
@@ -69,6 +107,10 @@ def register(request):
             except Exception as e:
                 form.add_error(None, f"Generic error: {str(e)}")
     else:
+
+        # If user is alreasy logged, redirect him to home
+        if request.user.is_authenticated:
+            return redirect("home")
 
         form = CustomerRegistrationForm()
 
