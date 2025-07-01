@@ -88,7 +88,6 @@
         background: #218838;
     }
 
-
     .signup-text {
         text-align: center;
         margin-top: 30px;
@@ -109,6 +108,11 @@
         color: white;
         text-decoration: none
     }
+
+    .fieldError {
+        color: red;
+        margin-top: 10px;
+    }
 </style>
 
 {% endblock extra_css %}
@@ -116,30 +120,35 @@
 {% block content %}
     <div id="overlayCard">
         <div class="login-wrapper">
-            <form class="login-form">
+            <form class="login-form" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
 
                 <h2>ECOSENSE</h2>
 
+                <span class="fieldError">{{ form.non_field_errors }}</span>
+
                 <div class="input-group">
                     <label>
-                        <input type="email" placeholder="Email" required />
+                        <input type="text" placeholder="Username" name="username" required />
                     </label>
+                    <span class="fieldError">{{ form.username.errors }}</span>
                 </div>
 
                 <div class="input-group">
                     <label>
-                        <input type="password" placeholder="Password" required />
+                        <input type="password" placeholder="Password" name="password" required />
                     </label>
+                    <span class="fieldError">{{ form.password.errors }}</span>
                 </div>
 
                 <div class="checkbox-group">
-                    <label><input type="checkbox" /> Remember me</label>
+                    <label><input type="checkbox" name="remember" /> Remember me</label>
                 </div>
 
                 <button type="submit" class="login-button">Sign In</button>
 
                 <p class="signup-text">
-                    Not a member? <a href="/register/">Sign up now</a>
+                    Not a member? <a href="{% url 'register' %}">Sign up now</a>
                 </p>
 
                 <div id="back" class="col text-center">
@@ -149,3 +158,20 @@
         </div>
     </div>
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+
+    // If it is a refresh, then I reset the form
+    if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+        window.addEventListener('load', function () {
+            const form = document.querySelector('form');
+            if (form) form.reset();
+
+            // I remove also the errors in span
+            document.querySelectorAll('.errorlist, .error-message').forEach(el => el.remove());
+        });
+    }
+
+</script>
+{% endblock %}
