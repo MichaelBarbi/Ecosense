@@ -18,7 +18,6 @@ def staff_login_required(view_func):
     return login_required(login_url='/staff/login/')(view_func)
 
 
-
 # Customer login
 def loginView(request):
 
@@ -55,7 +54,7 @@ def loginView(request):
     return render(request, template_name="login.html", context=ctx)
 
 # Customer register 
-def register(request):
+def registerView(request):
 
     if request.method == "POST":
 
@@ -208,3 +207,23 @@ def profileView(request):
     return render(request, "user/profile.html", context=ctx)
 
 
+@customer_login_required
+def deleteAccountView(request):
+
+    if request.method == "POST":
+
+        try:
+            user = request.user 
+        
+            user.delete()
+            logout(request)
+
+            return redirect("login")
+
+        except Exception as e:
+            messages.error(request, f"The account has not been deleted: {str(e)}")
+            return redirect("profile")
+
+
+    messages.error(request, "The account has not been deleted")
+    return redirect("profile")
