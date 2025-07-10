@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ title }}{% endblock title %}
-
-{% block extra_css %}
+{% block css %}
 {{ block.super }}
 
     <style>
@@ -68,7 +66,7 @@
             transform: translateX(4px);
         }
     </style>
-{% endblock extra_css %}
+{% endblock css %}
 
 {% block content %}
     <main>

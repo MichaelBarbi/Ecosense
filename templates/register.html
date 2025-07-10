@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ title }}{% endblock title %}
-
-{% block extra_css %}
+{% block css %}
 {{ block.super }}
 
 <style>
@@ -141,7 +139,7 @@
         text-decoration: underline;
     }
 
-    #back button a {
+    #back a {
         color: white;
         text-decoration: none
     }
@@ -152,7 +150,7 @@
     }
 </style>
 
-{% endblock extra_css %}
+{% endblock css %}
 
 {% block content %}
     <div id="overlayCard">
@@ -255,27 +253,11 @@
 
                 <p class="signup-text">Already have an account?<a href="/login/"> Sign in now</a></p>
 
-                <div id="back" class="col text-center">
-                    <button type="button" class="btn btn-dark"><a href="{% url 'home' %}">Back</a></button>
+                <div class="col text-center">
+                    <button id="back" type="button" class="btn btn-dark"><a href="{% url 'home' %}">Back</a></button>
                 </div>
             </form>
         </div>
     </div>
 {% endblock content %}
 
-{% block extra_js %}
-<script>
-
-    // If it is a refresh, then I reset the form
-    if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
-        window.addEventListener('load', function () {
-            const form = document.querySelector('form');
-            if (form) form.reset();
-
-            // I remove also the errors in span
-            document.querySelectorAll('.errorlist, .error-message').forEach(el => el.remove());
-        });
-    }
-
-</script>
-{% endblock %}

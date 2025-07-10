@@ -1,13 +1,22 @@
 from django.contrib.auth.models import User
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
-from .forms import CustomerRegistrationForm
+from django.contrib import messages
+from .forms import *
 from .models import *
 from shipping.models import ShippingAddress
 from django.db import IntegrityError
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+
+def customer_login_required(view_func):
+    return login_required(login_url='/login/')(view_func)
+
+def staff_login_required(view_func):
+    return login_required(login_url='/staff/login/')(view_func)
+
 
 
 # Customer login
@@ -121,5 +130,81 @@ def logoutView(request):
 
     logout(request)
     return redirect("home")
+
+@customer_login_required
+# Customer profile page
+def profileView(request):
+
+    # If the customer is not logged, he needs to sign in
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        return redirect("login")    
+
+
+    if request.method == "POST":    
+        
+        form = CustomerProfileForm(request.POST)
+
+        if form.is_valid():
+            
+            # Update user fields
+            user = request.user
+
+            user.first_name = form.cleaned_data["first_name"] if form.cleaned_data["first_name"] != "" else user.first_name
+            user.last_name = form.cleaned_data["last_name"] if form.cleaned_data["last_name"] != "" else user.last_name
+
+            password = form.cleaned_data.get("password")
+            # The validation is already executed through is_valid() method
+            if password:
+                user.set_password(password)
+                update_session_auth_hash(request, user)
+
+            user.save()
+
+            shipping = customer.shippingAddress
+
+            shipping.fullName = form.cleaned_data["fullName"] if form.cleaned_data["fullName"] != "" else shipping.fullName
+            shipping.address = form.cleaned_data["address"] if form.cleaned_data["address"] != "" else shipping.address
+            shipping.city = form.cleaned_data["city"] if form.cleaned_data["city"] != "" else shipping.city
+            shipping.province = form.cleaned_data["province"] if form.cleaned_data["province"] != "" else shipping.province
+            shipping.postalCode = form.cleaned_data["postalCode"] if form.cleaned_data["postalCode"] != "" else shipping.postalCode
+            shipping.country = form.cleaned_data["country"] if form.cleaned_data["country"] != "" else shipping.country
+
+            shipping.save()
+
+            messages.success(request, "Your profile was successfully updated")
+
+            return redirect("profile")
+
+        else:            
+            form.add_error(None, f"Form is not valid")
+            messages.error(request, "Your profile was not successfully updated")
+    
+    else:
+        # Get all customer form data
+        initial_data = {
+            "username": request.user.username,
+            "email": request.user.email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+
+            "fullName": customer.shippingAddress.fullName,
+            "address": customer.shippingAddress.address,
+            "city": customer.shippingAddress.city,
+            "province": customer.shippingAddress.province,
+            "postalCode": customer.shippingAddress.postalCode,
+            "country": customer.shippingAddress.country,
+        }
+        
+        form = CustomerProfileForm(initial=initial_data)
+
+    ctx = {
+        "title": "Profile",
+        "user": request.user,
+        "form": form
+    }
+
+    return render(request, "user/profile.html", context=ctx)
 
 
