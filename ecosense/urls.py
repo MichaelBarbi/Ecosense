@@ -23,5 +23,8 @@ urlpatterns = [
     re_path(r'^$|^/$|^home/$', views.home, name="home"),
     
     # User routes
-    path('', include('user.urls'))
+    path('', include('user.urls')),
+
+    # Sensor routes
+    path('', include("sensor.urls"))
 ]
