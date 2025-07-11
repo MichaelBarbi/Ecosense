@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block css %}
+{{block.super}}
+
+<style>
+
+    main {
+        min-height: 100vh;
+    }
+
+    .catalog-container {
+        max-width: 900px;
+        min-width: 100%;
+        margin: 25px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+</style>
+{% endblock css %}
+
+{% block content %}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <div class="container catalog-container">
+
+                    <h1 class="mb-4 fw-bold">Catalog</h1>
+
+                    <p class="d-inline-flex gap-1">
+
+                        <!-- Button to show filters -->
+                        <button class="btn btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                            Filters
+                        </button>
+
+                    </p>
+
+                    <div class="collapse" id="collapseExample" >
+                        <div class="card card-body">
+
+                            <!-- Filters list -->
+                            {% if sensor_types %}
+
+                                <form method="get" action="{% url 'catalog' %}">
+
+                                    <div class="form-group">
+
+                                        <label><strong>Filter for type:</strong></label><br>
+
+                                        {% for type in sensor_types %}
+
+                                            <div class="form-check form-check-inline my-2">
+                                                <input class="form-check-input" type="checkbox" name="types" value="{{ type.id }}" id="type{{ type.id }}" > 
+                                                <label class="form-check-label" for="type{{ type.id }}">{{ type.name }}</label>
+                                            </div>
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success mt-2">Search</button>
+
+                                </form>
+                            {% else %}
+                                <p>No filters available</p>
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                    <!-- Sensors list as cards-->
+                    {% for sensor in sensors %}
+                        <div class="card" style="width: 18rem; margin-top: 3em">
+
+                            <img src="{% static sensor.image %}" class="card-img-top" alt="Sensor image">
+
+                            <div class="card-body">
+                                <h5 class="card-title">{{ sensor.name }}</h5>
+                                <p class="card-text" style="font-size: 1.7em">{{ sensor.price }} €</p>
+
+                                <p class="card-text">
+                                    {% if sensor.types %}
+                                    
+                                        <span style="font-weight: 600">Types: </span>
+                                        <ul>
+                                            {% for type in sensor.types.all %}
+                                                <li>{{type.name}}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </p>
+
+                                <p>
+                                    {% if sensor.description %}
+                                        <p class="card-text">
+                                            {{sensor.description}}
+                                        </p>
+                                    {% endif %}
+                                </p>
+
+                                <button href="#" class="btn btn-success">Add to cart</button>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>No sensors available</p>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+        <section>
+    </main>
+{% endblock content %}
