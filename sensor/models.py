@@ -40,11 +40,12 @@ class Sensor(models.Model):
 class SensorItem(models.Model):
 
     sensor = models.ForeignKey(Sensor, related_name="sensorItems", on_delete=models.CASCADE)
-    customer = models.ForeignKey(Customer, related_name="sensors", on_delete=models.CASCADE)
     registration_code = models.CharField(max_length=200)
     is_registered = models.BooleanField(default=False)
     api_key = models.CharField(max_length=200)
     order = models.ForeignKey(Order, related_name="sensorItems", null=True, blank=True, on_delete=models.SET_NULL)
+    password = models.CharField(max_length=30)
+    label = models.CharField(max_length=70, blank=True, null=True)
 
     class Meta:
         ordering = ["id"]
