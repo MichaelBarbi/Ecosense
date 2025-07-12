@@ -50,23 +50,45 @@
                 {% if user.is_authenticated and user.customer %}
 
                     <!-- Right-aligned dropdown for customer -->
-                    <li class="nav-item dropdown ">
+                    <li class="nav-item d-flex align-items-center" style="gap: 1em;">
 
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ user.username }}
-                        </a>
+                        {% if user.is_authenticated and user.customer %}
 
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Sensors</a></li>
-                            <li><a class="dropdown-item" href="#">Orders</a></li>
-                            <li><a class="dropdown-item" href="#">Ticket</a></li>
-                            <li><a class="dropdown-item" href="#">Calendar</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
-                        </ul>
+                            <div class="dropdown">
+
+                                <button id="cart-badge-button" type="button" class="btn btn-light position-relative" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Cart
+                                    <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">{{ cart_items_count }}</span>
+                                </button>
+
+                                <ul class="dropdown-menu mt-3 cart-options">
+                                    <li><a class="dropdown-item" href="#">View Cart</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#">Go to Checkout</a></li>
+                                </ul>
+
+                            </div>
+
+                        {% endif %}
+
+                        <div class="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end mt-3">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+                                <li><a class="dropdown-item" href="#">Sensors</a></li>
+                                <li><a class="dropdown-item" href="#">Orders</a></li>
+                                <li><a class="dropdown-item" href="#">Ticket</a></li>
+                                <li><a class="dropdown-item" href="#">Calendar</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                            </ul>
+                        </div>
 
                     </li>
+
+
                 {% else %}
 
                     <!-- Right-aligned login/signup -->
