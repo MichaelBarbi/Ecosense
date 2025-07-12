@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+        main {
+                min-height: 100vh;
+            }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        </style>
+
+{% endblock css %}
+
+{% block content %}
+{{ block.super }}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts with the updating result -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">Cart</h1>
+
+                    <!-- Show every cart items -->
+                    {% if cart and items %}
+
+                        <table class="table">
+
+                            <thead>
+                                <th scope="col">Article</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Total</th>
+                            </thead>
+
+                            <tbody>
+                                {% for item in items %}
+                                    <tr class="align-middle">
+
+                                        <td scope="row" class="d-flex flex-row align-items-center gap-3">
+                                            <img src="{% static item.sensor.image %}" alt="Sensor image" width="70" height="96" />
+                                            <p class="m-0">{{item.sensor.name}}</p>
+                                        </td>
+
+                                        <td>{{ item.sensor.price}} €</td>
+
+                                        <td class="align-middle text-center">
+
+                                            <!-- Form to decreade quantity -->
+                                            <form method="POST" action="{% url 'cart_decrease_quantity' item.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="border:none; background:none; padding:0;">
+                                                    <img src="{% static 'images/svg/down-arrow.svg' %}" width="15" height="15" alt="decrease" />
+                                                </button>
+                                            </form>
+
+                                            <span style="margin: 0px 5px;">{{ item.quantity }}</span>
+
+                                            <!-- Form to increase quantity ↑ -->
+                                            <form method="POST" action="{% url 'cart_increase_quantity' item.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="border:none; background:none; padding:0;">
+                                                    <img src="{% static 'images/svg/top-arrow.svg' %}" width="15" height="15" alt="increase" />
+                                                </button>
+                                            </form>
+                                        </td>
+
+                                        <td>
+                                            <span>{{ item.amount }} €</span>
+
+                                            <!-- Click => Delete this item from cart -->
+                                            <form method="POST" action="{% url 'cart_delete_item' item.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="border:none; background:none; padding:0;">
+                                                    <img src="{% static 'images/svg/close-circol.svg' %}" width="25" height="25" alt="Delete" />
+                                                </button>
+                                            </form>
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                    {% else %}
+                        <p>No cart items available</p>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end mt-4" style="margin-bottom: 2em;">
+                        <form method="get" action="#">
+
+                            {% if cart and items %}    
+                                <div>
+                                    <p><b>Total: {{ cart.total_price }} €</b></p>
+                                    <button type="submit" class="btn btn-success me-2">Go to Checkout</button>
+                                </div>                        
+                            {% endif %}
+                        </form>
+                    </div>
+
+                </div>                
+            </div>
+        <section>
+    </main>
+{% endblock content %}

@@ -1,17 +1,35 @@
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
-from .models import OrderItem
+from .models import OrderItem, CartItem
 
-# Update total_quantity every time a OrderItems got an update
-def update_order_total(order):
-    total = sum(item.quantity * item.sensor.price for item in order.items.all())
-    order.total_price = total
-    order.save(update_fields=["total_price"])
+# Function to update total_price field for cart and order 
+def update_total(instance, related_name, parent_attr, total_field):
+    parent = getattr(instance, parent_attr)
+    items = getattr(parent, related_name).select_related("sensor").all()
+    total = sum(item.quantity * item.sensor.price for item in items)
+    setattr(parent, total_field, total)
+    parent.save(update_fields=[total_field])
 
+# Pre-save to update the amount field before saving
+@receiver(pre_save, sender=OrderItem)
+def update_order_item_amount(sender, instance, **kwargs):
+    instance.amount = instance.quantity * instance.sensor.price
+
+@receiver(pre_save, sender=CartItem)
+def update_cart_item_amount(sender, instance, **kwargs):
+    instance.amount = instance.quantity * instance.sensor.price
+
+
+# Post-save and Post-delete to update the total_price field
+
+# Order Item
 @receiver(post_save, sender=OrderItem)
-def update_total_on_save(sender, instance, **kwargs):
-    update_order_total(instance.order)
-
 @receiver(post_delete, sender=OrderItem)
-def update_total_on_delete(sender, instance, **kwargs):
-    update_order_total(instance.order)
+def update_order_total_price(sender, instance, **kwargs):
+    update_total(instance, related_name="orderItems", parent_attr="order", total_field="total_price")
+
+# Cart Item 
+@receiver(post_save, sender=CartItem)
+@receiver(post_delete, sender=CartItem)
+def update_cart_total_price(sender, instance, **kwargs):
+    update_total(instance, related_name="cartItems", parent_attr="cart", total_field="total_price")
