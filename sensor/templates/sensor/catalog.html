@@ -21,6 +21,70 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
 
+    input[type=number].fixed-width {
+        width: 6ch;
+    }
+
+    .grid-catalog {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3 equals columns */
+        gap: 0px 5rem;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+        .grid-catalog {
+            margin: 0px;
+            grid-template-columns: 1fr; /* Only 1 column */
+        }
+    }
+
+    .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .card-title {
+        font-size: 1.2em;
+        font-weight: bold;
+        line-height: 1.2em;
+        max-height: 2.4em; /* max 2 rows */
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-text.description {
+        flex-grow: 1; /* Push the block down */
+    }
+
+        .card-footer-actions {
+        margin-top: auto;
+    }
+
+
+    .card:hover {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.16), 0 4px 10px rgba(0,0,0,0.23);
+    }
+
+    .description-wrapper {
+        max-height: 150px;      
+        overflow-y: auto;       
+        padding-right: 0.5em;   
+    }
+
+    .description {
+        margin: 0; 
+    }
+
+
+
 </style>
 {% endblock css %}
 
@@ -29,6 +93,8 @@
     <main>
         <section class="py-5">
             <div class="container text-left">
+
+                <div id="cart-alert" class="alert d-none" role="alert"></div>
 
                 <div class="container catalog-container">
 
@@ -77,41 +143,55 @@
                     </div>
 
                     <!-- Sensors list as cards-->
-                    {% for sensor in sensors %}
-                        <div class="card" style="width: 18rem; margin-top: 3em">
+                    <div class="d-grid grid-catalog">
+                        {% for sensor in sensors %}
+                            <div class="card" style="width: 100%; margin-top: 3em; height: 873px;">
+                                <div class="card-body d-flex flex-column">
 
-                            <img src="{% static sensor.image %}" class="card-img-top" alt="Sensor image">
+                                    <img src="{% static sensor.image %}" class="card-img-top" alt="Sensor image" width="357" height="357" />
 
-                            <div class="card-body">
-                                <h5 class="card-title">{{ sensor.name }}</h5>
-                                <p class="card-text" style="font-size: 1.7em">{{ sensor.price }} €</p>
+                                    <div class="mt-4">
+                                        <h5 class="card-title">{{ sensor.name }}</h5>
+                                        <p class="card-text" style="font-size: 1.7em">{{ sensor.price }} €</p>
 
-                                <p class="card-text">
-                                    {% if sensor.types %}
-                                    
-                                        <span style="font-weight: 600">Types: </span>
-                                        <ul>
-                                            {% for type in sensor.types.all %}
-                                                <li>{{type.name}}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                </p>
+                                        {% if sensor.types %}
+                                            <p class="card-text">
+                                                <span style="font-weight: 600">Types:</span>
+                                                <ul>
+                                                    {% for type in sensor.types.all %}
+                                                        <li>{{ type.name }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </p>
+                                        {% endif %}
+                                    </div>
 
-                                <p>
                                     {% if sensor.description %}
-                                        <p class="card-text">
-                                            {{sensor.description}}
-                                        </p>
+                                        <div class="description-wrapper">
+                                            <p class="card-text description short">{{ sensor.description }}</p>
+                                        </div>
                                     {% endif %}
-                                </p>
 
-                                <button href="#" class="btn btn-success">Add to cart</button>
+                                    <div class="card-footer-actions mt-auto">
+
+                                        <div class="d-flex flex-row mb-2 quantity-wrapper" style="gap: 0.8em; width: 40%">
+
+                                            <span style="font-weight: 600">Quantity:</span>
+                                            <input type="number" name="quantity" class="fixed-width quantity-input" min="1" max="999" value="1"
+                                            oninput="if (this.value.length > 3) this.value = this.value.slice(0,3);" />
+
+                                        </div>
+
+                                        <button class="btn btn-success add-to-cart-btn" data-sensor-id="{{ sensor.id }}">Add to Cart</button>
+                                    </div>
+
+                                </div>
                             </div>
-                        </div>
-                    {% empty %}
-                        <p>No sensors available</p>
-                    {% endfor %}
+
+                        {% empty %}
+                            <p>No sensors available</p>
+                        {% endfor %}
+                    </div>
 
                 </div>
 
@@ -119,3 +199,84 @@
         <section>
     </main>
 {% endblock content %}
+
+{% block js %}
+{{ block.super }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const dropdownElement = document.getElementById("cart-badge-button");
+            const cartBadgeButton = document.getElementById("cart-badge-button");
+            const cartBadge = document.getElementById("cart-badge");
+
+            dropdownElement.addEventListener('show.bs.dropdown', function (event) {
+                if (cartBadge.textContent === "0") {
+                    
+                    // Avoid dropdown opening
+                    event.preventDefault();
+                }
+            });
+
+            document.querySelectorAll('.quantity-wrapper').forEach(function(wrapper) {
+                const btn = wrapper.nextElementSibling;
+                if (btn && btn.tagName === "BUTTON") {
+                    btn.style.width = wrapper.offsetWidth + "px";
+                }
+            });
+
+            document.querySelectorAll('.add-to-cart-btn').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const sensorId = this.dataset.sensorId;
+                    const quantityInput = this.parentElement.querySelector('.quantity-input');
+                    const quantity = quantityInput.value;
+
+                    fetch("{% url 'add_to_cart' %}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: `sensor_id=${sensorId}&quantity=${quantity}`
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+
+                        if ( data.status === "unauthenticated") {
+                            window.location.href = data.redirect_url;
+                        }
+
+                        // Show alert
+                        const alert = document.getElementById('cart-alert');
+                        alert.textContent = data.message;
+                        alert.classList.add('alert-' + data.status);
+                        alert.classList.remove("d-none");
+
+                        // Shadow the alert after 3 seconds
+                        setTimeout(() => {
+                            alert.classList.add('d-none')
+                        }, 6000);
+
+
+                        if (data.status === "success") {
+
+                            if (data.total_items && data.total_items > 0) {
+                                const badge = document.getElementById('cart-badge');
+                                badge.textContent = data.total_items;
+                            } 
+                        }
+
+
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+
+                    });
+                });
+            });
+        });
+</script>
+
+
+{% endblock js %}

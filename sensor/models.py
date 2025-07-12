@@ -1,7 +1,16 @@
 from django.db import models
-from user.models import Customer
-from order.models import Order
 from django.core.validators import MinValueValidator
+from cryptography.fernet import Fernet
+import os
+
+key = os.getenv("encryptKey")
+cipher = Fernet(key.encode())
+
+def encrypt_value(value: str) -> str:
+    return cipher.encrypt(value.encode()).decode()
+
+def decrypt_value(value: str) -> str:
+    return cipher.decrypt(value.encode()).decode()
 
 # Type of a sensor
 class SensorType(models.Model):
@@ -43,8 +52,8 @@ class SensorItem(models.Model):
     registration_code = models.CharField(max_length=200)
     is_registered = models.BooleanField(default=False)
     api_key = models.CharField(max_length=200)
-    order = models.ForeignKey(Order, related_name="sensorItems", null=True, blank=True, on_delete=models.SET_NULL)
-    password = models.CharField(max_length=30)
+    order = models.ForeignKey("order.Order", related_name="sensorItems", null=True, blank=True, on_delete=models.SET_NULL)
+    password = models.CharField(max_length=200)
     label = models.CharField(max_length=70, blank=True, null=True)
 
     class Meta:
@@ -55,4 +64,23 @@ class SensorItem(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["id","sensor"], name="unique_sensoritem_id_sensor")
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.pk: 
+            self.registration_code = encrypt_value(self.registration_code)
+            self.api_key = encrypt_value(self.api_key)
+            self.password = encrypt_value(self.password)
+        super().save(*args, **kwargs)
+
+
+    # Custom getter functions to retrieve data decrypted
+    def get_api_key(self):
+        return decrypt_value(self.api_key)
+
+    def get_password(self):
+        return decrypt_value(self.password)
+    
+    def get_registration_code(self):
+        return decrypt_value(self.registration_code)
+
 
