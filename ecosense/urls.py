@@ -26,5 +26,8 @@ urlpatterns = [
     path('', include('user.urls')),
 
     # Sensor routes
-    path('', include("sensor.urls"))
+    path('', include("sensor.urls")),
+
+    # Order and Cart routes
+    path('', include("order.urls"))
 ]
