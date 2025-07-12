@@ -206,18 +206,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            const dropdownElement = document.getElementById("cart-badge-button");
-            const cartBadgeButton = document.getElementById("cart-badge-button");
-            const cartBadge = document.getElementById("cart-badge");
-
-            dropdownElement.addEventListener('show.bs.dropdown', function (event) {
-                if (cartBadge.textContent === "0") {
-                    
-                    // Avoid dropdown opening
-                    event.preventDefault();
-                }
-            });
-
             document.querySelectorAll('.quantity-wrapper').forEach(function(wrapper) {
                 const btn = wrapper.nextElementSibling;
                 if (btn && btn.tagName === "BUTTON") {
