@@ -1,12 +1,108 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from user.views import customer_login_required
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import DeleteView, TemplateView
-from .models import Cart, CartItem
+from .models import Cart, CartItem, Order, OrderStatus, OrderItem
 from django.contrib import messages
- 
+from shipping.models import ShippingAddress
+from shipping.forms import *
+from payment.forms import *
+
+
+# GET => Get checkout page
+# POST => Comlpete an order
+@customer_login_required
+def checkoutView(request):
+
+    customer = request.user.customer
+
+    if request.method == "GET":
+        try:            
+
+            # Get the cart from customer
+            cart = customer.cart
+            if not cart:
+                raise ValueError("The cart is absent")
+
+            # Get the user's shipping address
+            shippingAddress = customer.shippingAddress
+            if not shippingAddress:
+                raise ValueError("The user's shipping address is absent")
+
+            # Create the shippingAddressform
+            shippingAddressForm = ShippingAddressForm(instance=shippingAddress, disabled=True, required=False)
+
+            # Create the CreditCardForm
+            creditCardForm = CreditCardForm()
+
+            return render(request, "order/checkout.html", {
+                "title": "Checkout",
+                "shippingAddressForm": shippingAddressForm,
+                "creditCardForm": creditCardForm
+            })
+
+        except Exception as e:
+            messages.error(request, f"Checkout error: {str(e)}")
+            return redirect("cart")
+
+    elif request.method == "POST":
+        
+        try:
+
+            cart = customer.cart
+            if not cart:
+                raise ValueError("The cart is absent")
+
+            # Verify is crediCardForm is valid
+            creditCardForm = CreditCardForm(request.POST)
+            if not creditCardForm.is_valid():
+                raise ValueError("Credit card form is invalid.")
+            
+            # Get or create the CreditCard object
+            creditCardFormData = creditCardForm.cleaned_data
+            credit_card, _ = CreditCard.objects.get_or_create(
+                card_number = creditCardFormData["card_number"],
+                exp_month = creditCardFormData["exp_month"],
+                exp_year = creditCardFormData["exp_year"]
+            )
+            
+            # Get customer's shipping address
+            shippingAddress = customer.shippingAddress
+            if not shippingAddress:
+                raise ValueError("Shipping address is invalid")
+
+            # Create the order and its orderItems
+            order = Order.objects.create(
+                customer=customer,
+                #created_at is automatically set
+                total_price=cart.total_price,
+                status=OrderStatus.AWAITING_SHIPMENT,
+                credit_card=credit_card
+            )
+
+            if not order:
+                raise ValueError("The order has not been created")
+            
+            for cartItem in cart.cartItems.all():
+
+                OrderItem.objects.create(
+                    order=order,
+                    quantity=cartItem.quantity,
+                    sensor=cartItem.sensor,
+                    amount=cartItem.amount
+                )
+            
+            # Delete the customer's cart
+            cart.delete()
+
+            return redirect("home")
+
+        except Exception as e:
+            messages.error(request, f"Checkout submission error: {str(e)}")
+            return redirect("checkout")
+
 
 @method_decorator(customer_login_required, name='dispatch')
 class CartPageView(TemplateView):

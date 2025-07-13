@@ -69,7 +69,7 @@
 
                                         <td>{{ item.sensor.price}} €</td>
 
-                                        <td class="align-middle text-center">
+                                        <td class="align-middle">
 
                                             <!-- Form to decreade quantity -->
                                             <form method="POST" action="{% url 'cart_decrease_quantity' item.id %}" style="display:inline;">
@@ -112,7 +112,7 @@
                     {% endif %}
 
                     <div class="d-flex justify-content-end mt-4" style="margin-bottom: 2em;">
-                        <form method="get" action="#">
+                        <form method="get" action="{% url 'checkout' %}">
 
                             {% if cart and items %}    
                                 <div>
@@ -120,6 +120,7 @@
                                     <button type="submit" class="btn btn-success me-2">Go to Checkout</button>
                                 </div>                        
                             {% endif %}
+                            
                         </form>
                     </div>
 
