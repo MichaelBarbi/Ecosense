@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+
+        main {
+                min-height: 100vh;
+        }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .info {
+            margin: 0px 0px;
+        }
+    </style>
+
+{% endblock css %}
+
+{% block content %}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts with the updating result -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    {% if order and order.orderItems %}
+
+                        <h1 class="mb-4 fw-bold">Order n. {{ order.order_id }}</h1>                        
+
+                        <!-- Show every cart items -->
+                        <table class="table">
+
+                            <thead>
+                                <th scope="col">Article</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Total</th>
+                            </thead>
+
+                            <tbody>
+                                {% for item in order.orderItems.all %}
+                                    <tr class="align-middle">
+
+                                        <td scope="row" class="d-flex flex-row align-items-center gap-3">
+                                            <img src="{% static item.sensor.image %}" alt="Sensor image" width="70" height="96" />
+                                            <p class="m-0">{{item.sensor.name}}</p>
+                                        </td>
+
+                                        <td>{{ item.sensor.price}} €</td>
+
+                                        <td class="align-middle">
+                                            <span style="margin: 0px 5px;">{{ item.quantity }}</span>
+                                        </td>
+
+                                        <td>
+                                            <span>{{ item.amount }} €</span>
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+
+                        </table>          
+
+                        <!-- Shipping Address -->
+                        <div>
+                            {% if order.customer.shippingAddress and shippingAddressForm %}
+                                <h2 class="mt-5 fw-bold">Shipping Address</h2>
+
+                                <div style="display: flex; gap: 30px; margin-top: 1.5em">
+                                    {{ shippingAddressForm|crispy }}
+                                </div>
+
+                                <hr class="hr">
+                            {% else %}
+                                <p>The shipping address is not available</p>
+                            {% endif %}
+                        </div>
+
+                        <div style="margin-top: 2.3em;">
+
+                            <p class="info"><b>Date: </b>{{ order.created_at|date:"d/m/Y" }}</p>
+
+                            <p class="info"><b>Status: </b>{{  order.get_status_display }}</p>
+
+                            {% if order.arrived_at %}
+                                <p class="info"><b>Delivered: </b>{{  order.arrived_at }}</p>
+                            {% endif %}
+
+                            <p class="info"><b>Total: </b>{{ order.total_price }} €</p>    
+
+                        </div> 
+
+                        <div class="d-flex justify-content-start mt-4 gap-3">
+
+                            <div id="back">
+                                <button type="button" class="btn btn-dark"><a href="{% url 'orders' %}">Back</a></button>
+                            </div>
+
+                            <form action="{% url 'order' order.order_id %}" method="post" >
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger refund" 
+                                    {% if order.status >= 4 %}disabled{% endif %}>
+                                    Refund
+                                </button>
+                            </form>
+                        </div>
+
+                    {% else %}
+                        <p>No cart items available</p>
+                    {% endif %}
+                </div>                
+            </div>
+        <section>
+    </main>
+
+{% endblock content %}

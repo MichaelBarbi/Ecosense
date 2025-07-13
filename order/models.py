@@ -38,9 +38,9 @@ class OrderStatus(models.IntegerChoices):
     PENDING = 1, "Pending"
     AWAITING_PAYMENT = 2, "Awaiting Payment"
     AWAITING_SHIPMENT = 3, "Awaiting Shipment"
-    COMPLETED = 4, "Completed"
-    CANCELLED = 5, "Cancelled"
-    SHIPPED = 6, "Shipped"
+    SHIPPED = 4, "Shipped"
+    COMPLETED = 5, "Completed"
+    CANCELLED = 6, "Cancelled"
 
 class Order(models.Model):
 
@@ -50,6 +50,7 @@ class Order(models.Model):
     status = models.IntegerField(choices=OrderStatus.choices, default=OrderStatus.PENDING)
     credit_card = models.ForeignKey(CreditCard, null=True, related_name="orders", on_delete=models.SET_NULL)
     order_id = models.PositiveIntegerField(null=True, blank=True)
+    arrived_at = models.DateField(null=True, blank=True)
 
     class Meta:
         ordering = ["id"]
