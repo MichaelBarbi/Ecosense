@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+        main {
+                min-height: 100vh;
+            }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            color: #28a745;
+        }
+        </style>
+
+{% endblock css %}
+
+{% block content %}
+{{ block.super }}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts with the updating result -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">My Orders</h1>
+
+                    <!-- Show every order -->
+                    {% if orders %}
+
+                        <table class="table">
+
+                            <thead>
+                                <th scope="col">Date</th>
+                                <th scope="col">Order ID</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Total</th>
+                                <th scope="col" title="Refund is only available if the order has not been shipped yet">Refund</th>
+                            </thead>
+
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr class="align-middle">
+
+                                        <td>{{ order.created_at|date:"d/m/Y" }}</td>
+
+                                        <td><a href="{% url 'order' order.order_id %}">{{ order.order_id }}</a></td>
+
+                                        <td>{{ order.get_status_display }}</td>
+
+                                        <td>{{ order.total_price }} €</td>
+
+                                        <td>
+                                            <form action="{% url 'order' order.order_id %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger refund" 
+                                                    {% if order.status >= 4 %}disabled{% endif %}>
+                                                    Refund
+                                                </button>
+                                            </form>
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                    {% else %}
+                        <p>No orders available</p>
+                    {% endif %}
+
+                </div>                
+            </div>
+        <section>
+    </main>
+{% endblock content %}

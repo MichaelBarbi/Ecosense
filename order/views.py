@@ -2,13 +2,68 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from user.views import customer_login_required
 from django.shortcuts import redirect, get_object_or_404, render
-from django.urls import reverse_lazy
-from django.views.generic import DeleteView, TemplateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import TemplateView, ListView, View
 from .models import Cart, CartItem, Order, OrderStatus, OrderItem
 from django.contrib import messages
-from shipping.models import ShippingAddress
 from shipping.forms import *
 from payment.forms import *
+from shipping.forms import *
+from sensor.models import SensorItem
+
+@method_decorator(customer_login_required, name="dispatch")
+class CustomerOrderView(View):
+    
+    template_name = "order/order.html"
+
+    # Return the order requested
+    def get(self, request, order_id):
+
+        customer = request.user.customer
+        order = get_object_or_404(Order, customer=customer, order_id=order_id)
+
+        context = {
+            "order": order,
+            "shippingAddressForm": ShippingAddressForm(
+                instance=order.customer.shippingAddress,
+                disabled=True,
+                required=False
+            )
+        }
+
+        return render(request, self.template_name, context)
+    
+    # Delete that order = Set status cancelled and delete all relations between the order and SensorItems
+    def post(self, request, order_id):
+
+        customer = request.user.customer
+        order = get_object_or_404(Order, customer=customer, order_id=order_id)
+
+        if order.status >= OrderStatus.SHIPPED:
+            messages.warning(request, "Order cannot be refunded.")
+        else:
+            order.status = OrderStatus.CANCELLED
+            order.save()
+
+            sensorItemsOfOrder = SensorItem.objects.filter(order=order)
+            for sensorItem in sensorItemsOfOrder:
+
+                sensorItem.order = None
+                sensorItem.save()
+
+            messages.success(request, f"Order n. {order.order_id} refunded.")
+
+        return redirect(request.META.get("HTTP_REFERER", reverse("order", kwargs={"order_id": order_id})))
+
+# To show all orders of a customer
+@method_decorator(customer_login_required, name='dispatch')
+class CustomerOrdersListView(ListView):
+    model = Order
+    template_name = 'order/orders.html'
+    context_object_name = 'orders'
+
+    def get_queryset(self):
+        return Order.objects.filter(customer=self.request.user.customer).order_by('-created_at')
 
 
 # GET => Get checkout page
@@ -93,6 +148,18 @@ def checkoutView(request):
                     sensor=cartItem.sensor,
                     amount=cartItem.amount
                 )
+
+                # For each orderItem, I need to link n sensorItem still not shipped to the order                
+                for _ in range(0, cartItem.quantity):
+                    
+                    sensorItem = SensorItem.objects.filter(sensor=cartItem.sensor, order=None).first()
+                    
+                    if not sensorItem:
+                        raise ValueError("Sensor item not found")
+
+                    sensorItem.order = order
+
+                    sensorItem.save()                    
             
             # Delete the customer's cart
             cart.delete()
