@@ -71,11 +71,11 @@ def registerView(request):
                 first_name = form.cleaned_data["first_name"]
                 last_name = form.cleaned_data["last_name"]
 
-                fullName = form.cleaned_data['fullName']
+                full_name = form.cleaned_data['full_name']
                 address = form.cleaned_data['address']
                 city = form.cleaned_data['city']
                 province = form.cleaned_data['province']
-                postalCode = form.cleaned_data['postalCode']
+                postal_code = form.cleaned_data['postal_code']
                 country = form.cleaned_data['country']
 
                 # Password validation with native auth validators
@@ -98,11 +98,11 @@ def registerView(request):
                 customer = Customer.objects.create(user=user)
                 ShippingAddress.objects.create(
                     customer=customer,
-                    fullName=fullName,
+                    full_name=full_name,
                     address=address,
                     city=city,
                     province=province,
-                    postalCode=postalCode,
+                    postal_code=postal_code,
                     country=country
                 )
 
@@ -163,11 +163,11 @@ def profileView(request):
 
             shipping = customer.shippingAddress
 
-            shipping.fullName = form.cleaned_data["fullName"] if form.cleaned_data["fullName"] != "" else shipping.fullName
+            shipping.full_name = form.cleaned_data["full_name"] if form.cleaned_data["full_name"] != "" else shipping.full_name
             shipping.address = form.cleaned_data["address"] if form.cleaned_data["address"] != "" else shipping.address
             shipping.city = form.cleaned_data["city"] if form.cleaned_data["city"] != "" else shipping.city
             shipping.province = form.cleaned_data["province"] if form.cleaned_data["province"] != "" else shipping.province
-            shipping.postalCode = form.cleaned_data["postalCode"] if form.cleaned_data["postalCode"] != "" else shipping.postalCode
+            shipping.postal_code = form.cleaned_data["postal_code"] if form.cleaned_data["postal_code"] != "" else shipping.postal_code
             shipping.country = form.cleaned_data["country"] if form.cleaned_data["country"] != "" else shipping.country
 
             shipping.save()
@@ -188,11 +188,11 @@ def profileView(request):
             "first_name": request.user.first_name,
             "last_name": request.user.last_name,
 
-            "fullName": customer.shippingAddress.fullName,
+            "full_name": customer.shippingAddress.full_name,
             "address": customer.shippingAddress.address,
             "city": customer.shippingAddress.city,
             "province": customer.shippingAddress.province,
-            "postalCode": customer.shippingAddress.postalCode,
+            "postal_code": customer.shippingAddress.postal_code,
             "country": customer.shippingAddress.country,
         }
         

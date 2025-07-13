@@ -13,11 +13,11 @@ class CustomerRegistrationForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput)
 
-    fullName = forms.CharField(max_length=50)
+    full_name = forms.CharField(max_length=50)
     address = forms.CharField(max_length=50)
     city = forms.CharField(max_length=50)
     country = forms.CharField(max_length=50)
-    postalCode = forms.CharField(max_length=20)
+    postal_code = forms.CharField(max_length=20)
     province = forms.CharField(max_length=50)
 
     def clean_email(self):
@@ -53,11 +53,11 @@ class CustomerProfileForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput, required=False, label="Update password")
     confirm_password = forms.CharField(widget=forms.PasswordInput, required=False)
 
-    fullName = forms.CharField(max_length=50, required=False, label="Full name")
+    full_name = forms.CharField(max_length=50, required=False, label="Full name")
     address = forms.CharField(max_length=50, required=False)
     city = forms.CharField(max_length=50, required=False)
     country = forms.CharField(max_length=50, required=False)
-    postalCode = forms.CharField(max_length=20, required=False)
+    postal_code = forms.CharField(max_length=20, required=False)
     province = forms.CharField(max_length=50, required=False)
 
     def clean_password(self):

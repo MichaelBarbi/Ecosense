@@ -24,10 +24,10 @@ def create_initial_data(sender, **kwargs):
 
         ShippingAddress.objects.create(
             customer=customer,
-            fullName="Mich Barbi",
+            full_name="Mich Barbi",
             address='123 Main St',
             city='Rome',
             province='Rome',
-            postalCode='00100',
+            postal_code='00100',
             country='Italy'
         )
