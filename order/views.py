@@ -23,6 +23,7 @@ class CustomerOrderView(View):
         order = get_object_or_404(Order, customer=customer, order_id=order_id)
 
         context = {
+            "title": "Order " + str(order_id),
             "order": order,
             "shippingAddressForm": ShippingAddressForm(
                 instance=order.customer.shippingAddress,
@@ -61,6 +62,13 @@ class CustomerOrdersListView(ListView):
     model = Order
     template_name = 'order/orders.html'
     context_object_name = 'orders'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Orders"
+
+        return context
+    
 
     def get_queryset(self):
         return Order.objects.filter(customer=self.request.user.customer).order_by('-created_at')
@@ -178,6 +186,8 @@ class CartPageView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        context["title"] = "Cart"
 
         # Get the cart
         cart = getattr(self.request.user.customer, "cart", None)
