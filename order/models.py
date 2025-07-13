@@ -40,23 +40,35 @@ class OrderStatus(models.IntegerChoices):
     AWAITING_SHIPMENT = 3, "Awaiting Shipment"
     COMPLETED = 4, "Completed"
     CANCELLED = 5, "Cancelled"
+    SHIPPED = 6, "Shipped"
 
 class Order(models.Model):
 
     customer = models.ForeignKey(Customer, related_name="orders", on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     total_price = models.DecimalField(decimal_places=2, max_digits=10 ,default=0.00, validators=[MinValueValidator(0)])
     status = models.IntegerField(choices=OrderStatus.choices, default=OrderStatus.PENDING)
-    credit_cart = models.ForeignKey(CreditCard, null=True, related_name="orders", on_delete=models.SET_NULL)
+    credit_card = models.ForeignKey(CreditCard, null=True, related_name="orders", on_delete=models.SET_NULL)
+    order_id = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ["id"]
         verbose_name = "Order"
         verbose_name_plural = "Orders"
-        db_table = "order"
+        db_table = "db_order"
         constraints = [
-            models.CheckConstraint(check=models.Q(total_price__gte=0), name="order_totalPrice_non_negative")
+            models.CheckConstraint(check=models.Q(total_price__gte=0), name="order_totalPrice_non_negative"),
+            models.UniqueConstraint(fields=["customer", "order_id"], name="unique_order_id_per_customer"),
         ]
+
+    def save(self, *args, **kwargs):
+        if self.order_id is None:  # only set if not already defined
+
+            last_order = Order.objects.filter(customer=self.customer).order_by('-order_id').first()
+            self.order_id = 1 if not last_order else last_order.order_id + 1
+
+        super().save(*args, **kwargs)
+
 
 class OrderItem(models.Model):
 

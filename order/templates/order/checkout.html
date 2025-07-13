@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+
+        main {
+                min-height: 100vh;
+        }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+{% endblock css %}
+
+{% block content %}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts with the updating result -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">Checkout</h1>
+
+                    <!-- Show every cart items -->
+                    {% if cart and cart.cartItems %}
+
+                        <table class="table">
+
+                            <thead>
+                                <th scope="col">Article</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Total</th>
+                            </thead>
+
+                            <tbody>
+                                {% for item in cart.cartItems.all %}
+                                    <tr class="align-middle">
+
+                                        <td scope="row" class="d-flex flex-row align-items-center gap-3">
+                                            <img src="{% static item.sensor.image %}" alt="Sensor image" width="70" height="96" />
+                                            <p class="m-0">{{item.sensor.name}}</p>
+                                        </td>
+
+                                        <td>{{ item.sensor.price}} €</td>
+
+                                        <td class="align-middle">
+                                            <span style="margin: 0px 5px;">{{ item.quantity }}</span>
+                                        </td>
+
+                                        <td>
+                                            <span>{{ item.amount }} €</span>
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <a href="{% url 'cart' %}" ><button style="margin-bottom: 1.5em" type="button" class="btn btn-dark me-2">Modify the cart</button></a>
+
+                        <hr class="hr">
+
+                        <!-- Shipping Address -->
+                        <div>
+                            {% if shippingAddressForm %}
+                                <h2 class="mt-5 fw-bold">Shipping Address</h2>
+
+                                <div style="display: flex; gap: 30px; margin-top: 1.5em">
+                                    {{ shippingAddressForm|crispy }}
+                                </div>
+
+                                <a href="{% url 'profile' %}" ><button style="margin-top: 0.6em; margin-bottom: 1.5em" type="button" class="btn btn-dark me-2">Modify the shipping address</button></a>
+
+                                <hr class="hr">
+                            {% else %}
+                                <p>The shipping address is not available</p>
+                            {% endif %}
+                        </div>
+
+                        <form method="post" action="{% url 'checkout' %}">
+                            {% csrf_token %}
+                            
+                            <!-- Credit Card -->
+                            <div>                            
+                                {% if creditCardForm %}
+                                    <h2 class="mt-5 fw-bold">Payment</h2>
+
+                                    <div style="display: flex; gap: 30px; margin-top: 1.5em">
+                                        {{ creditCardForm|crispy }}
+                                    </div>
+
+                                    <hr class="hr">
+                                {% else %}
+                                    <p>The payment is not available</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Submit button -->
+                            <div class="d-flex justify-content-end mt-4" style="margin-bottom: 2em;">
+          
+                                <div>
+                                    <p><b>Total: {{ cart.total_price }} €</b></p>
+                                    <button type="submit" class="btn btn-success me-2">Purchase</button>
+                                </div>  
+
+                            </div>
+                        </form>
+
+                    {% else %}
+                        <p>No cart items available</p>
+                    {% endif %}
+                </div>                
+            </div>
+        <section>
+    </main>
+
+{% endblock content %}
