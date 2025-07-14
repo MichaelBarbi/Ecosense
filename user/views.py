@@ -10,39 +10,74 @@ from django.db import IntegrityError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from functools import wraps
 
 def customer_login_required(view_func):
-    return login_required(login_url='/login/')(view_func)
+
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+
+        if hasattr(request.user, 'customer'):
+            return view_func(request, *args, **kwargs)
+        
+        return redirect('/unauthorized/')  # oppure mostra messaggio
+    return _wrapped_view
 
 def staff_login_required(view_func):
-    return login_required(login_url='/staff/login/')(view_func)
 
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+
+        if hasattr(request.user, 'staff'):
+            return view_func(request, *args, **kwargs)
+        
+        return redirect('/unauthorized/')
+    return _wrapped_view
+
+def unauthorized(request):
+    return render(request, 'unauthorized.html', {'title': 'Unauthorized access'})
 
 # Customer login
 def loginView(request):
 
     if request.method == "POST":
-        
         form = AuthenticationForm(request, data=request.POST)
-        
-        if form.is_valid():
 
+        if form.is_valid():
             user = form.get_user()
 
             # Remember me
             if not request.POST.get("remember"):
-                request.session.set_expiry(0) # Session expires after closing the browser
+                request.session.set_expiry(0)  # Session expires after closing browser
             else:
-                request.session.set_expiry(604800) 
+                request.session.set_expiry(604800)  # 1 week
 
             login(request, user)
-            return redirect("home")
+
+            if hasattr(user, 'customer'):
+                return redirect('home')
+            elif hasattr(user, 'staff'):
+                return redirect('staff_home')
+            else:
+                logout(request)
+                return redirect('login')
 
     else:
 
-        # If user is alreasy logged, redirect him to home
+        # User already authenticated
         if request.user.is_authenticated:
-            return redirect("home")
+
+            user = request.user
+            
+            if hasattr(user, 'customer'):
+                return redirect('home')
+            elif hasattr(user, 'staff'):
+                return redirect('staff_home')
+            else:
+                logout(request)
+                return redirect('login')
 
         form = AuthenticationForm()
 
@@ -53,18 +88,21 @@ def loginView(request):
 
     return render(request, template_name="login.html", context=ctx)
 
-# Customer register 
+# Register a new customer
 def registerView(request):
 
-    if request.method == "POST":
+    # If the user is already logged in
+    if request.user.is_authenticated:
+        if not hasattr(request.user, 'customer') and not hasattr(request.user, 'staff'):
+            logout(request)
+        return redirect('home') 
 
+    if request.method == "POST":
         form = CustomerRegistrationForm(request.POST)
 
         if form.is_valid():
-
             try:
-                
-                # Extract the cleaned data
+                # Estrai i dati
                 username = form.cleaned_data['username']
                 email = form.cleaned_data['email']
                 password = form.cleaned_data['password']
@@ -78,14 +116,10 @@ def registerView(request):
                 postal_code = form.cleaned_data['postal_code']
                 country = form.cleaned_data['country']
 
-                # Password validation with native auth validators
-                try:
-                    validate_password(password, user=None)
-                except ValidationError as e:
-                    form.add_error('password', e)
-                    raise Exception("Password validation failed")
+                # Valida la password
+                validate_password(password)
 
-                # Create the user
+                # Crea l'utente
                 user = User.objects.create_user(
                     username=username,
                     email=email,
@@ -94,7 +128,7 @@ def registerView(request):
                     last_name=last_name
                 )
 
-                # Cretae the customer and his shipping address
+                # Associa customer e indirizzo
                 customer = Customer.objects.create(user=user)
                 ShippingAddress.objects.create(
                     customer=customer,
@@ -109,20 +143,20 @@ def registerView(request):
                 login(request, user)
                 return redirect("home")
 
+            except ValidationError as e:
+                form.add_error('password', e)
+
             except IntegrityError as e:
-                form.add_error(None, f"Integrity error: {str(e)}")
+                form.add_error(None, f"Errore di integrità: {str(e)}")
 
             except Exception as e:
-                form.add_error(None, f"Generic error: {str(e)}")
+                form.add_error(None, f"Errore generico: {str(e)}")
+
     else:
-
-        # If user is alreasy logged, redirect him to home
-        if request.user.is_authenticated:
-            return redirect("home")
-
         form = CustomerRegistrationForm()
 
     return render(request, "register.html", {"form": form})
+
 
 # Logout
 def logoutView(request):
@@ -205,7 +239,6 @@ def profileView(request):
     }
 
     return render(request, "user/profile.html", context=ctx)
-
 
 @customer_login_required
 def deleteAccountView(request):
