@@ -65,10 +65,11 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if self.order_id is None:  # only set if not already defined
 
-            last_order = Order.objects.filter(customer=self.customer).order_by('-order_id').first()
+            last_order = Order.objects.filter(customer=self.customer).exclude(order_id__isnull=True).order_by('-order_id').first()
             self.order_id = 1 if not last_order else last_order.order_id + 1
 
         super().save(*args, **kwargs)
+
 
 
 class OrderItem(models.Model):

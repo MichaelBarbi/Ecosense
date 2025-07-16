@@ -56,10 +56,8 @@ def loginView(request):
 
             login(request, user)
 
-            if hasattr(user, 'customer'):
+            if hasattr(user, 'customer') or hasattr(user, 'staff'):
                 return redirect('home')
-            elif hasattr(user, 'staff'):
-                return redirect('staff_home')
             else:
                 logout(request)
                 return redirect('login')
@@ -71,10 +69,8 @@ def loginView(request):
 
             user = request.user
             
-            if hasattr(user, 'customer'):
+            if hasattr(user, 'customer') or hasattr(user, 'staff'):
                 return redirect('home')
-            elif hasattr(user, 'staff'):
-                return redirect('staff_home')
             else:
                 logout(request)
                 return redirect('login')
@@ -102,7 +98,8 @@ def registerView(request):
 
         if form.is_valid():
             try:
-                # Estrai i dati
+
+                # Extract the data
                 username = form.cleaned_data['username']
                 email = form.cleaned_data['email']
                 password = form.cleaned_data['password']
@@ -116,10 +113,10 @@ def registerView(request):
                 postal_code = form.cleaned_data['postal_code']
                 country = form.cleaned_data['country']
 
-                # Valida la password
+                # Validate the password
                 validate_password(password)
 
-                # Crea l'utente
+                # Create the user
                 user = User.objects.create_user(
                     username=username,
                     email=email,
@@ -128,7 +125,7 @@ def registerView(request):
                     last_name=last_name
                 )
 
-                # Associa customer e indirizzo
+                # Set customer and shippinAddress
                 customer = Customer.objects.create(user=user)
                 ShippingAddress.objects.create(
                     customer=customer,
@@ -147,10 +144,10 @@ def registerView(request):
                 form.add_error('password', e)
 
             except IntegrityError as e:
-                form.add_error(None, f"Errore di integrità: {str(e)}")
+                form.add_error(None, f"Integrity error: {str(e)}")
 
             except Exception as e:
-                form.add_error(None, f"Errore generico: {str(e)}")
+                form.add_error(None, f"Generic error: {str(e)}")
 
     else:
         form = CustomerRegistrationForm()

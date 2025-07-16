@@ -9,7 +9,96 @@ from user.views import customer_login_required
 from order.models import Order
 from django.contrib import messages
 from .forms import *
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
+# Recieve data from sensors
+@csrf_exempt
+def receive_sensor_data(request):
+
+    if request.method == "POST":
+
+        # Get the data from the request body
+        data = json.loads(request.body)
+
+        code = data.get("code")
+        key = data.get("key")
+
+        sensorItems = SensorItem.objects.filter(is_registered=True)
+        sensor = None
+        
+        for sensoritem in sensorItems:
+
+            try:
+
+                sensorCode = sensoritem.get_registration_code()
+                sensorKey = sensoritem.get_api_key()
+
+                if sensorCode == code and sensorKey == key:                        
+                    sensor = sensoritem
+
+                    break
+            except Exception:
+                continue
+        else:
+            return JsonResponse({"error":"Unauthorized"}, status=403)
+        
+        group = sensor.group
+
+        # Sensor values
+        values = data.get("values", [])
+
+        # Send data to the group channel via WebSocket
+        channel_layer = get_channel_layer()
+
+        async_to_sync(channel_layer.group_send)(
+            f"group_{group.group_id}",
+            {
+                "type": "send_sensor_data",
+                "data": {
+                    "sensor_id": sensor.pk,
+                    "values": values
+                }
+            }
+        )
+
+        return JsonResponse({"status": "ok"})
+
+    return JsonResponse({"error": "POST only"}, status=400)
+
+@customer_login_required
+@require_POST
+def addGroupToSensor(request):
+
+    try:
+
+        # Get the form
+        selectGroupForm = SelectGroupForm(request.POST)
+
+        if not selectGroupForm.is_valid():
+            raise ValueError("The form is invalid")
+
+        group = selectGroupForm.cleaned_data["group"]
+        if not group:
+            raise ValueError("The selected group is inexistent")
+        
+        # SensorId
+        sensorId = int(request.POST["sensor"])
+        sensoritem = SensorItem.objects.get(pk=sensorId)
+
+        if not sensoritem:
+            raise ValueError("The sensor selected is inexistent")
+        
+        sensoritem.group = group
+        sensoritem.save()
+
+    except Exception as e:
+        messages.error(request, f"The sensor has not been added in the group: {str(e)}")
+
+    return redirect("home")
 
 #Update label of a registered sensor
 @customer_login_required
@@ -96,6 +185,8 @@ def registerSensorView(request):
              
             sensorItemToRegister.is_registered = True
             sensorItemToRegister.label = registerSensorItemForm.cleaned_data["label"] if registerSensorItemForm.cleaned_data["label"] else ""
+
+            sensorItemToRegister.customer = request.user.customer
 
             sensorItemToRegister.save()
 

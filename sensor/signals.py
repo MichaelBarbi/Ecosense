@@ -3,7 +3,6 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from .models import *
 
-
 from .utils.token_utils import (
     generate_unique_registration_code,
     generate_unique_password,
@@ -88,7 +87,6 @@ def create_initial_data(sender, **kwargs):
             sensor = Sensor.objects.create(**data)
             sensor.types.add(*types)
 
-
         if not SensorItem.objects.exists():
 
             sensor_items_data = [
@@ -110,6 +108,7 @@ def create_initial_data(sender, **kwargs):
                         api_key=generate_api_key(),
                         order=None,
                         password=generate_unique_password(),
+                        password="111111",
                         label=""
                     )
 

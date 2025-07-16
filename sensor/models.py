@@ -1,7 +1,10 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from cryptography.fernet import Fernet
+from user.models import Customer
+from group.models import *
 import os
+
 
 key = os.getenv("encryptKey")
 cipher = Fernet(key.encode())
@@ -55,6 +58,8 @@ class SensorItem(models.Model):
     order = models.ForeignKey("order.Order", related_name="sensorItems", null=True, blank=True, on_delete=models.SET_NULL)
     password = models.CharField(max_length=200)
     label = models.CharField(max_length=70, blank=True, null=True)
+    customer = models.ForeignKey(Customer, related_name="sensorItems", on_delete=models.CASCADE ,null=True, blank=True)
+    group = models.ForeignKey(Group, related_name="sensorItems", on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         ordering = ["id"]
