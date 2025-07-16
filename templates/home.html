@@ -70,63 +70,72 @@
 
 {% block content %}
     <main>
+
+        {% if user.is_authenticated and user.customer %}
+
+            {% include "home/home_customer.html" %}
         
-        <section id="headerImage">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6 overlay">
-                        <h1 class="display-4 fw-bold mb-4">
-                            Connect with Your Environment
-                        </h1>
-                        <p class="lead text-light mb-4">
-                            Our smart sensors deliver real-time insights on environmental conditions, enabling intelligent responses and data-driven sustainability.
-                        </p>
+        {% elif ser.is_authenticated and user.staff %}
+
+        {% else %}        
+        
+            <section id="headerImage">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-6 overlay">
+                            <h1 class="display-4 fw-bold mb-4">
+                                Connect with Your Environment
+                            </h1>
+                            <p class="lead text-light mb-4">
+                                Our smart sensors deliver real-time insights on environmental conditions, enabling intelligent responses and data-driven sustainability.
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="py-5">
-            <div class="container text-center">
-                <h2 class="mb-4 fw-bold">Our services</h2>
-                <div class="row justify-content-center">
+            <section class="py-5">
+                <div class="container text-center">
+                    <h2 class="mb-4 fw-bold">Our services</h2>
+                    <div class="row justify-content-center">
 
-                    <!-- Service 1 -->
-                    <div class="col-md-4 mb-4">
-                        <div class="service-box p-4 bg-white rounded shadow-sm h-100">
-                            <div class="icon-circle mb-3 mx-auto">
-                                <img src="{% static 'images/icon/iot.svg' %}" alt="Smart IoT" width="40">
+                        <!-- Service 1 -->
+                        <div class="col-md-4 mb-4">
+                            <div class="service-box p-4 bg-white rounded shadow-sm h-100">
+                                <div class="icon-circle mb-3 mx-auto">
+                                    <img src="{% static 'images/icon/iot.svg' %}" alt="Smart IoT" width="40">
+                                </div>
+                                <h5 class="fw-bold">Smart IoT Sensors</h5>
+                                <a href="/catalog" class="service-link text-primary">Learn more<span class="arrow">➜</span></a>
                             </div>
-                            <h5 class="fw-bold">Smart IoT Sensors</h5>
-                            <a href="/catalog" class="service-link text-primary">Learn more<span class="arrow">➜</span></a>
                         </div>
-                    </div>
 
-                    <!-- Service 2 -->
-                    <div class="col-md-4 mb-4">
-                        <div class="service-box p-4 bg-white rounded shadow-sm h-100">
-                            <div class="icon-circle mb-3 mx-auto">
-                                <img src="{% static 'images/icon/webapp.svg' %}" alt="Web Dashboard" width="40">
+                        <!-- Service 2 -->
+                        <div class="col-md-4 mb-4">
+                            <div class="service-box p-4 bg-white rounded shadow-sm h-100">
+                                <div class="icon-circle mb-3 mx-auto">
+                                    <img src="{% static 'images/icon/webapp.svg' %}" alt="Web Dashboard" width="40">
+                                </div>
+                                <h5 class="fw-bold">Web Dashboard Analytics</h5>
+                                <a href="{% url 'login' %}" class="service-link text-primary">Learn more <span class="arrow">➜</span></a>
                             </div>
-                            <h5 class="fw-bold">Web Dashboard Analytics</h5>
-                            <a href="{% url 'login' %}" class="service-link text-primary">Learn more <span class="arrow">➜</span></a>
                         </div>
-                    </div>
 
-                    <!-- Service 3 -->
-                    <div class="col-md-4 mb-4">
-                        <div class="service-box p-4 bg-white rounded shadow-sm h-100">
-                            <div class="icon-circle mb-3 mx-auto">
-                                <img src="{% static 'images/icon/group.svg' %}" alt="Custom Groups" width="40">
+                        <!-- Service 3 -->
+                        <div class="col-md-4 mb-4">
+                            <div class="service-box p-4 bg-white rounded shadow-sm h-100">
+                                <div class="icon-circle mb-3 mx-auto">
+                                    <img src="{% static 'images/icon/group.svg' %}" alt="Custom Groups" width="40">
+                                </div>
+                                <h5 class="fw-bold">Custom Sensor Groups</h5>
+                                <a href="{% url 'login' %}" class="service-link text-primary">Learn more <span class="arrow">➜</span></a>
                             </div>
-                            <h5 class="fw-bold">Custom Sensor Groups</h5>
-                            <a href="{% url 'login' %}" class="service-link text-primary">Learn more <span class="arrow">➜</span></a>
                         </div>
-                    </div>
 
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        {% endif %}
 
     </main>
 {% endblock content %}

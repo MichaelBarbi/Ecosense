@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+{{block.super}}
+
+<style>
+
+    main {
+        min-height: 100vh;
+    }
+
+    .ctn {
+        max-width: 900px;
+        min-width: 100%;
+        margin: 25px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+
+</style>
+{% endblock css %}
+
+{% block content %}
+
+    <main>
+
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <!-- Form and sensor list-->
+                    <div class="container my-5">
+                        <div class="row">
+
+                            <!-- Group form -->
+                            <div class="col-md-6 mb-4">
+
+                                <h2 class="mb-4 fw-bold">Group</h2>
+
+                                <!-- Form to update group information -->
+                                <form action="{% url 'groups:manage' group.group_id %}" method="post">
+                                    {% csrf_token %}
+                                    {{ viewGroupForm|crispy }}
+
+                                    <div class="d-flex justify-content-start mt-4">
+                                        <button type="submit" name="action" value="save" class="btn btn-success me-2">Save</button>
+                                        <button type="submit" name="action" value="delete" class="btn btn-danger">Delete</button>
+                                    </div>
+                                </form>
+
+                            </div>
+
+                            <!-- List of sensors -->
+                            <div class="col-md-6">
+
+                                <h2 class="fw-bold" style="margin-bottom: 55px">Sensors</h2>
+
+                                {% if sensoritems %}                                
+                                
+                                    
+                                    <div>
+                                        {% for sensorItem in sensoritems.all %}
+                                        
+                                            <div class="card mb-4">
+                                                <div class="card-body d-flex flox-row justify-content-between">
+
+                                                    <span>
+                                                        {% if sensorItem.label %}
+                                                            {{ sensorItem.label }}
+                                                        {% else %}
+                                                            {{ sensorItem.get_registration_code }}
+                                                        {% endif %}
+                                                    </span>
+                                                    
+                                                    <form action="{% url 'groups:remove_sensor_from_group' group_id=group.group_id %}" method="post" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="sensorItem" value="{{ sensorItem.pk }}" />
+                                                        
+                                                        <button type="submit" style="background: none; border: none; padding: 0;">
+                                                            <img src="{% static 'images/svg/close-circol.svg' %}" 
+                                                                alt="Delete this sensor from the group" 
+                                                                width="20" height="20" />
+                                                        </button>
+                                                    </form>
+
+                                                </div>
+                                            </div>
+
+                                        {% endfor %}                                        
+                                    </div>
+                                
+                                {% else %}
+                                    <p>This group doesn't have sensors</p>
+                                {% endif %}
+                                
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time sensor values list-->
+                    <div class="row">
+                        {% for sensorItem in sensoritems.all %}
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+
+                                        <h5 class="card-title d-flex flex-row">
+                                            {% if sensorItem.label %}
+                                                {{ sensorItem.label }}
+                                            {% else %}
+                                                {{ sensorItem.get_registration_code }}
+                                            {% endif %}
+                                            &nbsp<span id="state-{{ sensorItem.pk }}" class="text-danger">Offline</span>
+                                        </h5>
+
+                                        <!-- Card for every type of every sensor -->
+                                        {% for type in sensorItem.sensor.types.all %}
+
+                                            <p class="card-text">
+
+                                                <strong>Type:</strong> {{ type.name }}<br>
+                                                <strong>Last lecture: </strong><span id="sensor-{{ sensorItem.pk }}-{{ type.name }}"></span> {{ type.symbol }}<br>
+
+                                            </p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+        <section>
+    </main>
+
+{% endblock content %}
+
+{% block js %}
+{{ block.super }}
+
+<script>
+
+    const groupId = {{ group.group_id }};
+    const socket = new WebSocket(`ws://${window.location.host}/ws/groups/${groupId}/`);
+
+    // List of sensors
+    const sensorTimeouts = {};
+
+    // Maximum waiting time in milliseconds
+    const OFFLINE_TIMEOUT = 25000;
+
+    function updateSensorState(sensorId, typeName, value) {
+
+        const valueSpan = document.getElementById(`sensor-${sensorId}-${typeName}`);
+        if (valueSpan) {
+            valueSpan.textContent = value;
+        }
+
+        const stateSpan = document.getElementById(`state-${sensorId}`);
+        if (stateSpan) {
+            stateSpan.textContent = "Online";
+            stateSpan.classList.remove("text-danger");
+            stateSpan.classList.add("text-success");
+        }
+
+        // Reset of the timer
+        if (sensorTimeouts[sensorId]) {
+            clearTimeout(sensorTimeouts[sensorId]);
+        }
+
+        // Set a new timeout
+        sensorTimeouts[sensorId] = setTimeout(() => {
+            if (stateSpan) {
+                stateSpan.textContent = "Offline";
+                stateSpan.classList.remove("text-success");
+                stateSpan.classList.add("text-danger");
+            }
+        }, OFFLINE_TIMEOUT);
+    }
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+
+        for (let row of data.values) {
+            updateSensorState(data.sensor_id, row.type, row.value);
+        }
+    };
+
+    
+</script>
+
+{% endblock js %}

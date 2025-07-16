@@ -29,6 +29,7 @@
 {% block content %}
 
     <main>
+
         <section class="py-5">
             <div class="container text-left">
 
@@ -42,18 +43,22 @@
 
                     {% endfor %}
                 {% endif %}
+
+                
+                <form method="post" action="{% url 'groups:add_group' %}">
+                    {% csrf_token %}
                     
-                <div class="container ctn" >
+                    <div class="container ctn" >
 
-                    <h1 class="mb-4 fw-bold">Unauthorized access</h1>
+                        <h1 class="mb-4 fw-bold">Add group</h1>
 
-                    <p>You do not have permissions to view this page.</p>
+                        {{ addGroupForm|crispy }}
 
-                    <p>
-                        <a href="{% url 'home' %}" class="btn btn-success mt-3">Get back to home</a>
-                    </p>
-
-                </div>
+                        <div class="d-flex justify-content-start mt-4">
+                            <button type="submit" class="btn btn-success me-2">Save</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         <section>
     </main>
