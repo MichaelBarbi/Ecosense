@@ -20,10 +20,6 @@ STAFF_ROLES = ('Technical', 'Sales')
 # Staff
 class Staff(models.Model):
     user = models.OneToOneField(User, related_name="staff", on_delete=models.CASCADE)
-    ROLES = (
-        ('technical', 'Technical'),
-        ('sales', 'Sales')
-    )
     roles = models.ManyToManyField('StaffRole', blank=True)
 
     def save(self, *args, **kwargs):
@@ -49,6 +45,18 @@ class Staff(models.Model):
 
                 r, _ = StaffRole.objects.get_or_create(name=role)
                 self.roles.add(r)
+            self.save()
+
+    def has_role(self, role_name):
+        return self.roles.filter(name=role_name).exists()
+    
+    @property
+    def is_sales(self):
+        return self.has_role("Sales")
+    
+    @property
+    def is_technical(self):
+        return self.has_role("Technical")
 
 
 # Manage the custom roles

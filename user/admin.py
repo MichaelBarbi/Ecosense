@@ -11,18 +11,18 @@ admin.site.register(User, CustomUserAdmin)
 
 admin.site.register(Customer)
 
+@admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    filter_horizontal = ('roles',)
 
     def save_model(self, request, obj, form, change):
 
+        # Save normally
         super().save_model(request, obj, form, change)
-        
-        # Se non ha ruoli, aggiungi quelli di default
+
+        # If it hasn't roles, I assigh them
         if obj.roles.count() == 0:
-            for role_name in ('Tecnico', 'Vendita'):
+            for role_name in STAFF_ROLES:
                 role, _ = StaffRole.objects.get_or_create(name=role_name)
                 obj.roles.add(role)
 
-admin.site.register(Staff, StaffAdmin)
 admin.site.register(StaffRole)

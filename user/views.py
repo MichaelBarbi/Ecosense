@@ -161,7 +161,7 @@ def logoutView(request):
     logout(request)
     return redirect("home")
 
-@customer_login_required
+@login_required
 # Customer profile page
 def profileView(request):
 

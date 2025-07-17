@@ -39,7 +39,7 @@
             </ul>
 
             <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated and user.customer %}
+                {% if user.is_authenticated %}
 
                     <!-- Right-aligned dropdown for customer -->
                     <li class="nav-item d-flex align-items-center" style="gap: 1em;">
@@ -64,18 +64,39 @@
                                 {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end mt-3">
+
                                 <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'registered_sensors' %}">Sensors</a></li>
-                                <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
-                                <li><a class="dropdown-item" href="#">Ticket</a></li>
-                                <li><a class="dropdown-item" href="#">Calendar</a></li>
+
+                                {% if user.customer %}
+                                    <li><a class="dropdown-item" href="{% url 'registered_sensors' %}">Sensors</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
+                                    <li><a class="dropdown-item" href="#">Ticket</a></li>
+                                {% endif %}
+
+                                {% if user.staff %}
+                            
+                                    {% if user.staff.is_sales or user.staff.is_technical %}
+                                        <li><a class="dropdown-item" href="#">Sensor types</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'registered_sensors' %}">Sensors</a></li>
+                                        <li><a class="dropdown-item" href="#">Sensor Items</a></li>
+                                    {% endif %}
+
+                                    {% if user.staff.is_sales %}
+                                        <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
+                                    {% endif %}
+
+                                    {% if user.staff.is_technical %}
+                                        <li><a class="dropdown-item" href="#">Ticket</a></li>
+                                    {% endif %}
+
+                                {% endif %}
+
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
                             </ul>
                         </div>
 
-                    </li>
-
+                    </li>                   
 
                 {% else %}
 
