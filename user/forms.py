@@ -42,7 +42,6 @@ class CustomerRegistrationForm(forms.Form):
         if password and confirm_password and password != confirm_password:
             self.add_error('confirm_password', "Passwords do not match")
 
-
 # Customer profile form
 class CustomerProfileForm(forms.Form):
 
@@ -97,3 +96,39 @@ class CustomUserChangeForm(forms.ModelForm):
         if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
             raise ValidationError("A user with this email already exists.")
         return email
+    
+# Staff profile form
+class StaffProfileForm(forms.Form):
+
+    username = forms.CharField(max_length=150, required=False, disabled=True)
+    email = forms.EmailField(required=False, disabled=True)
+    first_name = forms.CharField(max_length=50, required=False)
+    last_name = forms.CharField(max_length=50, required=False)
+    password = forms.CharField(widget=forms.PasswordInput, required=False, label="Update password")
+    confirm_password = forms.CharField(widget=forms.PasswordInput, required=False)
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+
+        if password:
+            try:
+                validate_password(password)
+            except ValidationError as e:
+                raise forms.ValidationError(e.messages)
+        
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password and confirm_password and password != confirm_password:
+            self.add_error('confirm_password', "Passwords do not match")
+        elif password and not confirm_password:
+            self.add_error("confirm_password", "Confirm hasn't been entered")
+        elif not password and confirm_password:
+            self.add_error("password", "Password hasn't been entered")
+
+        return cleaned_data

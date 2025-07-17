@@ -154,6 +154,19 @@ def registerView(request):
 
     return render(request, "register.html", {"form": form})
 
+def getTypeOfUser(request):
+    
+    if not request or not hasattr(request, "user"):
+        return None, None
+    
+    user = request.user
+    
+    if hasattr(user, "customer"):
+        return user.customer, "customer"
+    elif hasattr(user, "staff"):
+        return user.staff, "staff"
+    else:
+        return None, None
 
 # Logout
 def logoutView(request):
@@ -162,72 +175,113 @@ def logoutView(request):
     return redirect("home")
 
 @login_required
-# Customer profile page
+# User profile page
 def profileView(request):
 
-    # If the customer is not logged, he needs to sign in
-    try:
-        customer = request.user.customer
-    except Customer.DoesNotExist:
-        return redirect("login")    
+    userLogged, userType = getTypeOfUser(request)
 
+    if not userLogged or not userType:
+        return redirect("login")
 
-    if request.method == "POST":    
-        
-        form = CustomerProfileForm(request.POST)
+    if userType == "customer":
 
-        if form.is_valid():
+        if request.method == "POST":    
             
-            # Update user fields
-            user = request.user
+            form = CustomerProfileForm(request.POST)
 
-            user.first_name = form.cleaned_data["first_name"] if form.cleaned_data["first_name"] != "" else user.first_name
-            user.last_name = form.cleaned_data["last_name"] if form.cleaned_data["last_name"] != "" else user.last_name
+            if form.is_valid():
+                
+                # Update user fields
+                user = request.user
 
-            password = form.cleaned_data.get("password")
-            # The validation is already executed through is_valid() method
-            if password:
-                user.set_password(password)
-                update_session_auth_hash(request, user)
+                user.first_name = form.cleaned_data["first_name"] if form.cleaned_data["first_name"] != "" else user.first_name
+                user.last_name = form.cleaned_data["last_name"] if form.cleaned_data["last_name"] != "" else user.last_name
 
-            user.save()
+                password = form.cleaned_data.get("password")
+                # The validation is already executed through is_valid() method
+                if password:
+                    user.set_password(password)
+                    update_session_auth_hash(request, user)
 
-            shipping = customer.shippingAddress
+                user.save()
 
-            shipping.full_name = form.cleaned_data["full_name"] if form.cleaned_data["full_name"] != "" else shipping.full_name
-            shipping.address = form.cleaned_data["address"] if form.cleaned_data["address"] != "" else shipping.address
-            shipping.city = form.cleaned_data["city"] if form.cleaned_data["city"] != "" else shipping.city
-            shipping.province = form.cleaned_data["province"] if form.cleaned_data["province"] != "" else shipping.province
-            shipping.postal_code = form.cleaned_data["postal_code"] if form.cleaned_data["postal_code"] != "" else shipping.postal_code
-            shipping.country = form.cleaned_data["country"] if form.cleaned_data["country"] != "" else shipping.country
+                shipping = userLogged.shippingAddress
 
-            shipping.save()
+                shipping.full_name = form.cleaned_data["full_name"] if form.cleaned_data["full_name"] != "" else shipping.full_name
+                shipping.address = form.cleaned_data["address"] if form.cleaned_data["address"] != "" else shipping.address
+                shipping.city = form.cleaned_data["city"] if form.cleaned_data["city"] != "" else shipping.city
+                shipping.province = form.cleaned_data["province"] if form.cleaned_data["province"] != "" else shipping.province
+                shipping.postal_code = form.cleaned_data["postal_code"] if form.cleaned_data["postal_code"] != "" else shipping.postal_code
+                shipping.country = form.cleaned_data["country"] if form.cleaned_data["country"] != "" else shipping.country
 
-            messages.success(request, "Your profile was successfully updated")
+                shipping.save()
 
-            return redirect("profile")
+                messages.success(request, "Your profile was successfully updated")
 
-        else:            
-            form.add_error(None, f"Form is not valid")
-            messages.error(request, "Your profile was not successfully updated")
-    
-    else:
-        # Get all customer form data
-        initial_data = {
-            "username": request.user.username,
-            "email": request.user.email,
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
+                return redirect("profile")
 
-            "full_name": customer.shippingAddress.full_name,
-            "address": customer.shippingAddress.address,
-            "city": customer.shippingAddress.city,
-            "province": customer.shippingAddress.province,
-            "postal_code": customer.shippingAddress.postal_code,
-            "country": customer.shippingAddress.country,
-        }
+            else:            
+                form.add_error(None, f"Form is not valid")
+                messages.error(request, "Your profile was not successfully updated")
         
-        form = CustomerProfileForm(initial=initial_data)
+        else:
+            # Get all customer form data
+            initial_data = {
+                "username": request.user.username,
+                "email": request.user.email,
+                "first_name": request.user.first_name,
+                "last_name": request.user.last_name,
+
+                "full_name": userLogged.shippingAddress.full_name,
+                "address": userLogged.shippingAddress.address,
+                "city": userLogged.shippingAddress.city,
+                "province": userLogged.shippingAddress.province,
+                "postal_code": userLogged.shippingAddress.postal_code,
+                "country": userLogged.shippingAddress.country,
+            }
+            
+            form = CustomerProfileForm(initial=initial_data)
+
+    elif userType == "staff":
+
+        if request.method == "GET":
+
+            initial_data = {
+                "username": request.user.username,
+                "email": request.user.email,
+                "first_name": request.user.first_name,
+                "last_name": request.user.last_name
+            }
+            
+            form = StaffProfileForm(initial=initial_data)
+
+        elif request.method == "POST":
+
+            form = StaffProfileForm(request.POST)
+
+            if form.is_valid():
+                
+                # Update user fields
+                user = request.user
+
+                user.first_name = form.cleaned_data["first_name"] if form.cleaned_data["first_name"] != "" else user.first_name
+                user.last_name = form.cleaned_data["last_name"] if form.cleaned_data["last_name"] != "" else user.last_name
+
+                password = form.cleaned_data.get("password")
+                # The validation is already executed through is_valid() method
+                if password:
+                    user.set_password(password)
+                    update_session_auth_hash(request, user)
+
+                user.save()
+
+                messages.success(request, "Your profile was successfully updated")
+
+                return redirect("profile")
+
+            else:            
+                form.add_error(None, f"Form is not valid")
+                messages.error(request, "Your profile was not successfully updated")
 
     ctx = {
         "title": "Profile",
@@ -237,7 +291,7 @@ def profileView(request):
 
     return render(request, "user/profile.html", context=ctx)
 
-@customer_login_required
+@login_required
 def deleteAccountView(request):
 
     if request.method == "POST":

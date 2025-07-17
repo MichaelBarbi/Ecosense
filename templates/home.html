@@ -75,7 +75,7 @@
 
             {% include "home/home_customer.html" %}
         
-        {% elif ser.is_authenticated and user.staff %}
+        {% elif user.is_authenticated and user.staff %}
 
         {% else %}        
         

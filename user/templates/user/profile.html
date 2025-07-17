@@ -80,22 +80,36 @@
                         <h1 class="mb-4 fw-bold">Profile</h1>
 
                         <div style="display: flex; gap: 30px;">
-                            <div  id="user-column" class="user-column" style="flex:1;">
-                                {{ form.username|as_crispy_field }}
-                                {{ form.email|as_crispy_field }}
-                                {{ form.first_name|as_crispy_field }}
-                                {{ form.last_name|as_crispy_field }}
-                                {{ form.password|as_crispy_field }}
-                                {{ form.confirm_password|as_crispy_field }}
-                            </div>
-                            <div class="address-column" style="flex:1;">
-                                {{ form.full_name|as_crispy_field }}
-                                {{ form.address|as_crispy_field }}
-                                {{ form.city|as_crispy_field }}
-                                {{ form.country|as_crispy_field }}
-                                {{ form.postal_code|as_crispy_field }}
-                                {{ form.province|as_crispy_field }}
-                            </div>
+
+                            {% if user.is_authenticated and user.customer%}
+                                <div  id="user-column" class="user-column" style="flex:1;">
+                                    {{ form.username|as_crispy_field }}
+                                    {{ form.email|as_crispy_field }}
+                                    {{ form.first_name|as_crispy_field }}
+                                    {{ form.last_name|as_crispy_field }}
+                                    {{ form.password|as_crispy_field }}
+                                    {{ form.confirm_password|as_crispy_field }}
+                                </div>
+                                <div class="address-column" style="flex:1;">
+                                    {{ form.full_name|as_crispy_field }}
+                                    {{ form.address|as_crispy_field }}
+                                    {{ form.city|as_crispy_field }}
+                                    {{ form.country|as_crispy_field }}
+                                    {{ form.postal_code|as_crispy_field }}
+                                    {{ form.province|as_crispy_field }}
+                                </div>
+                            
+                            {% elif user.is_authenticated and user.staff %}
+                                <div  id="user-column" class="user-column" style="flex:1;">
+                                    {{ form.username|as_crispy_field }}
+                                    {{ form.email|as_crispy_field }}
+                                    {{ form.first_name|as_crispy_field }}
+                                    {{ form.last_name|as_crispy_field }}
+                                    {{ form.password|as_crispy_field }}
+                                    {{ form.confirm_password|as_crispy_field }}
+                                </div>
+                            {% endif %}
+
                         </div>
 
                         <div class="d-flex justify-content-start mt-4" style="margin-bottom: 2em;">
