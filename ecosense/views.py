@@ -19,10 +19,10 @@ def home(request):
         if hasattr(request.user, 'customer'):
             
             # Get all customer sensorItems that are not used in any group
-            sensorItemsNotUsed = SensorItem.objects.filter(customer=request.user.customer, group=None).order_by("-registration_code")
+            sensorItemsNotUsed = SensorItem.objects.filter(customer=request.user.customer, group=None).order_by("registration_code")
 
             # Get all customer groups
-            groups = Group.objects.filter(customer=request.user.customer).order_by("-name")
+            groups = Group.objects.filter(customer=request.user.customer).order_by("name")
 
             selectGroupForm = SelectGroupForm()
 

@@ -18,7 +18,7 @@ def decrypt_value(value: str) -> str:
 # Type of a sensor
 class SensorType(models.Model):
     
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     description = models.TextField(max_length=100, blank=True)
     symbol = models.CharField(max_length=10, blank=True)
 
