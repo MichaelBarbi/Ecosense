@@ -108,7 +108,6 @@ def create_initial_data(sender, **kwargs):
                         api_key=generate_api_key(),
                         order=None,
                         password=generate_unique_password(),
-                        password="111111",
                         label=""
                     )
 
