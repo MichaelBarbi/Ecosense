@@ -76,17 +76,17 @@
                                 {% if user.staff %}
                             
                                     {% if user.staff.is_sales or user.staff.is_technical %}
-                                        <li><a class="dropdown-item" href="#">Sensor types</a></li>
-                                        <li><a class="dropdown-item" href="{% url 'registered_sensors' %}">Sensors</a></li>
-                                        <li><a class="dropdown-item" href="#">Sensor Items</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'sensor_types' %}">Sensor types</a></li>
+                                        <li><a class="dropdown-item" href="#">Sensors</a></li>
+                                        <li><a class="dropdown-item" href="#">Ticket</a></li>
                                     {% endif %}
-
+                                        
                                     {% if user.staff.is_sales %}
                                         <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
                                     {% endif %}
-
+                                        
                                     {% if user.staff.is_technical %}
-                                        <li><a class="dropdown-item" href="#">Ticket</a></li>
+                                            <li><a class="dropdown-item" href="#">Sensor Items</a></li>                                        
                                     {% endif %}
 
                                 {% endif %}

@@ -1,5 +1,11 @@
 from django import forms
-from .models import SensorItem
+from .models import SensorItem, SensorType
+
+class SensorTypeForm(forms.ModelForm):
+
+    class Meta:
+        model = SensorType
+        exclude = []
 
 class RegisterSensorItemForm(forms.ModelForm):
 

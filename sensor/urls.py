@@ -9,5 +9,9 @@ urlpatterns = [
     path("sensors/register", views.registerSensorView, name="register_sensor"),
     path("sensors/<int:pk>/edit/", views.sensorLabelUpdateView, name="edit-sensor"),
     path("sensors/add-group", views.addGroupToSensor, name="add_group_to_sensor"),
-    path("sensors/listening", views.receive_sensor_data, name="sensor_listening")
+    path("sensors/listening", views.receive_sensor_data, name="sensor_listening"),
+    path("sensor-types/", views.SensorTypeLsitView.as_view(), name="sensor_types"),
+    path("sensor-types/add", views.addSensortype, name="sensor_types_add"),
+    path("sensor-types/<int:typeId>/edit", views.sensorTypeUpdate, name="sensor_types_update"),
+    path("sensor-types/<int:pk>/delete", views.SensorTypeDeleteView.as_view(), name="sensor_types_delete")
 ]

@@ -1,11 +1,11 @@
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
 from .models import *
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from order.models import Cart, CartItem
-from user.views import customer_login_required
+from user.views import customer_login_required, staff_login_required
 from order.models import Order
 from django.contrib import messages
 from .forms import *
@@ -14,6 +14,110 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.urls import reverse_lazy
+from django.contrib.messages.views import SuccessMessageMixin
+
+# Add a new sensor type
+@staff_login_required
+def addSensortype(request): 
+
+    if request.method == "GET":
+
+        try:
+
+            # Get the form
+            sensorTypeForm = SensorTypeForm()
+
+            return render(request, template_name="sensor/addSensorType.html", context={
+                "title": "Add Sensor Type",
+                "sensorTypeForm": sensorTypeForm
+            })
+
+        except Exception as e:
+            messages.error(request, f"Adding a sensor type is not currently available: {str(e)}")
+            return redirect("sensor_types")
+        
+    elif request.method == "POST":
+
+        try:
+            
+            # Get the form
+            sensorTypeForm = SensorTypeForm(request.POST)
+            if not sensorTypeForm.is_valid():
+                raise ValueError("The form is invalid")
+            
+            SensorType.objects.create(
+                name = sensorTypeForm.cleaned_data["name"].capitalize(),
+                description = sensorTypeForm.cleaned_data["description"] if sensorTypeForm.cleaned_data["description"] else "",
+                symbol = sensorTypeForm.cleaned_data["symbol"] if sensorTypeForm.cleaned_data["symbol"] else ""
+            )
+
+            messages.success(request, "The new sensor type has been created correctly")
+
+            return redirect("sensor_types")
+
+        except Exception as e:
+            messages.error(request, f"The new sensor type has not been created: {str(e)}")
+            return redirect("sensor_types_add")
+
+# Delete a sensor type
+@method_decorator(staff_login_required, name='dispatch')
+class SensorTypeDeleteView(SuccessMessageMixin, DeleteView):
+
+    model = SensorType
+    template_name = "sensor/sensorTypes.html"
+    success_url = reverse_lazy("sensor_types")
+    success_message = "The sensor type '%(name)s' was deleted successfully."
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % {'name': self.object.name}
+    
+
+# Update sensor type data
+@staff_login_required
+@require_POST
+def sensorTypeUpdate(request, typeId):
+
+    try:
+        
+        sensor_type = get_object_or_404(SensorType, pk=typeId)
+        
+        sensorTypeForm = SensorTypeForm(request.POST, instance=sensor_type)
+
+        if not sensorTypeForm.is_valid():
+            raise ValueError("The form is not valid")
+
+        nameCap = sensorTypeForm.cleaned_data["name"].capitalize()
+
+        sensor_type.name = nameCap
+        sensor_type.description = sensorTypeForm.cleaned_data["description"]
+        sensor_type.symbol = sensorTypeForm.cleaned_data["symbol"]
+
+        sensor_type.save()
+
+        messages.success(request, "The sensor type has been updated correctly")
+
+    except Exception as e:
+        messages.error(request, f"The sensor type has not been updated: {str(e)}")
+    
+    return redirect("sensor_types")
+
+# View of all sensor types
+@method_decorator(staff_login_required, name='dispatch')
+class SensorTypeLsitView(ListView):
+
+    model = SensorType
+    template_name = 'sensor/sensorTypes.html'
+    context_object_name = 'sensorTypes'
+
+    def get_queryset(self):
+        return SensorType.objects.all().order_by("name")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Sensor Types"
+        context["sensorTypeForm"] = SensorTypeForm()
+        return context
 
 # Recieve data from sensors
 @csrf_exempt
@@ -221,7 +325,7 @@ class CustomerRegisteredSensorsListView(ListView):
         orders = Order.objects.filter(customer=self.request.user.customer)    
 
         # All sensor items registered of the customer
-        sensorItems = SensorItem.objects.filter(is_registered=True, order__in=orders).order_by('-registration_code')
+        sensorItems = SensorItem.objects.filter(is_registered=True, order__in=orders)
 
         for sensor in sensorItems:
 

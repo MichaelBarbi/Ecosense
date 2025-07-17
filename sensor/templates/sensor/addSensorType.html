@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+{% load crispy_forms_tags%}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+        main {
+                min-height: 100vh;
+            }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        </style>
+
+{% endblock css %}
+
+{% block content %}
+{{ block.super }}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">Add a new Sensor Type</h1>
+
+                    <!-- Show every sensorItems -->
+                    {% if sensorTypeForm %}
+
+                        <form action="{% url 'sensor_types_add' %}" method="post">
+                            {% csrf_token %}
+
+                            {{ sensorTypeForm|crispy }}
+
+                            <button type="submit" class="btn btn-success me-2">Register</button>
+
+                        </form>
+
+                    {% else %}
+                        <p>Sensor type registration is not currently available</p>
+                    {% endif %}
+
+                </div>                
+            </div>
+        <section>
+    </main>
+{% endblock content %}
