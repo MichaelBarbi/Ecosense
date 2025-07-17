@@ -87,3 +87,13 @@ class CustomerProfileForm(forms.Form):
         return cleaned_data
 
 
+class CustomUserChangeForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+            raise ValidationError("A user with this email already exists.")
+        return email
