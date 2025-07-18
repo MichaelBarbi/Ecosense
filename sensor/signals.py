@@ -2,6 +2,9 @@ from django.db.models.signals import post_save, post_delete
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from .models import *
+from django.core.files.images import ImageFile
+from django.conf import settings
+from ecosense.settings import MEDIA_ROOT
 
 from .utils.token_utils import (
     generate_unique_registration_code,
@@ -32,20 +35,19 @@ def create_initial_data(sender, **kwargs):
     if not SensorType.objects.exists():
 
         types_data = [
-            (1, "Temperature", "Detects heat", "C"),
-            (2, "Pressure", "Measures pressure", "atm"),
-            (3, "Umidity", "Measures umidity", "RH"),
-            (4, "Salinity", "Measures salinity in water", "ppt"),
+            ("Temperature", "Detects heat", "C"),
+            ("Pressure", "Measures pressure", "atm"),
+            ("Umidity", "Measures umidity", "RH"),
+            ("Salinity", "Measures salinity in water", "ppt"),
         ]
 
-        for pk, name, desc, sym in types_data:
-            SensorType.objects.create(pk=pk, name=name, description=desc, symbol=sym)
+        for name, desc, sym in types_data:
+            SensorType.objects.create(name=name, description=desc, symbol=sym)
 
     if not Sensor.objects.exists():
 
         sensors_data = [
             {
-                "pk": 1,
                 "name": "Sensore di umidità RS PRO",
                 "image": "images/sensors/sensoreUmidita.webp",
                 "quantity": 0,
@@ -54,7 +56,6 @@ def create_initial_data(sender, **kwargs):
                 "types": [3]
             },
             {
-                "pk": 2,
                 "name": "DHT11 - Sensore digitale di umidità e temperatura",
                 "image": "images/sensors/temperatura-umidita.jpg",
                 "quantity": 0,
@@ -63,7 +64,6 @@ def create_initial_data(sender, **kwargs):
                 "types": [1, 3]
             },
             {
-                "pk": 3,
                 "name": "Sensore BME680",
                 "image": "images/sensors/Sensore-BME680.jpg",
                 "quantity": 0,
@@ -72,7 +72,6 @@ def create_initial_data(sender, **kwargs):
                 "types": [1,2,3]
             },
             {
-                "pk": 4,
                 "name": "Misuratore di salinità HK-47",
                 "image": "images/sensors/salinita.jpg",
                 "quantity": 0,
@@ -84,7 +83,23 @@ def create_initial_data(sender, **kwargs):
 
         for data in sensors_data:
             types = data.pop("types")
+
+            # Build the absolute path of the image
+            image_path = os.path.join(settings.MEDIA_ROOT, data["image"])
+
+            # Extract the file name
+            image_filename = os.path.basename(image_path)
+
+            # Create the instance but without an image
+            data.pop("image")  # I temporarily remove “image” from the date
             sensor = Sensor.objects.create(**data)
+
+            # Open the image file and assign it to sensor.image
+            with open(image_path, 'rb') as img_file:
+                sensor.image.name = f"images/sensors/{image_filename}"
+                sensor.save()
+
+            # Assign the types
             sensor.types.add(*types)
 
         if not SensorItem.objects.exists():

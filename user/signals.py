@@ -4,6 +4,12 @@ from .models import *
 from shipping.models import ShippingAddress
 
 @receiver(post_migrate)
+def create_default_roles(sender, **kwargs):
+    
+    for role in STAFF_ROLES:
+        StaffRole.objects.get_or_create(name=role)
+
+@receiver(post_migrate)
 def create_initial_data(sender, **kwargs):
 
     if not User.objects.all():
@@ -31,3 +37,56 @@ def create_initial_data(sender, **kwargs):
             postal_code='00100',
             country='Italy'
         )
+
+        users_data = [
+            {
+                "user": {
+                    "username": "both@root.com",
+                    "password": "haTr6crA!",
+                    "email": "both@root.com",
+                    "first_name": "both_first",
+                    "last_name": "both_last"
+                },
+                "roles": ["Sales", "Technical"]
+            },
+            {
+                "user": {
+                    "username": "sales@root.com",
+                    "password": "haTr6crA!",
+                    "email": "sales@root.com",
+                    "first_name": "sales_first",
+                    "last_name": "sales_last"
+                },
+                "roles": ["Sales"]
+            },
+            {
+                "user": {
+                    "username": "tech@root.com",
+                    "password": "haTr6crA!",
+                    "email": "tech@root.com",
+                    "first_name": "tech_first",
+                    "last_name": "tech_last"
+                },
+                "roles": ["Technical"]
+            }
+        ]
+
+        for data in users_data:
+            user_data = data["user"]
+            roles_names = data["roles"]
+
+            user, created = User.objects.get_or_create(username=user_data["username"], defaults=user_data)
+
+            if created:
+                user.set_password(user_data["password"])
+                user.save()
+
+            staff, _ = Staff.objects.get_or_create(user=user)
+
+            # Associate the roles
+            for role_name in roles_names:
+                try:
+                    role = StaffRole.objects.get(name=role_name)
+                    staff.roles.add(role)
+                except StaffRole.DoesNotExist:
+                    pass 

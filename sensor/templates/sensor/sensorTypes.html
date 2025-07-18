@@ -99,7 +99,7 @@
                                         <td>{{ type.description }}</td>
 
                                         <td>
-                                            {% if not type.sensors.exists %}                                            
+                                            {% if request.user.staff and request.user.staff.is_sales and not type.sensors.exists %}                                            
                                             
                                                 <form action="{% url 'sensor_types_delete' type.pk %}" method="post">
                                                     {% csrf_token %}
@@ -120,11 +120,13 @@
                         <p>No sensors register yet</p>
                     {% endif %}
 
-                    <div class="d-flex justify-content-start" style="margin-top: 2em;">
-                        <form method="get" action="{% url 'sensor_types_add' %}">
-                            <button type="submit" class="btn btn-success me-2">Add a new type</button>                            
-                        </form>
-                    </div>
+                    {% if request.user.staff and request.user.staff.is_sales %}
+                        <div class="d-flex justify-content-start" style="margin-top: 2em;">
+                            <form method="get" action="{% url 'sensor_types_add' %}">
+                                <button type="submit" class="btn btn-success me-2">Add a new type</button>                            
+                            </form>
+                        </div>
+                    {% endif %}
 
                 </div>                
             </div>

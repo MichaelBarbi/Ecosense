@@ -17,6 +17,114 @@ from asgiref.sync import async_to_sync
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
 
+@method_decorator(staff_login_required, name="dispatch")
+class SensorDeleteView(SuccessMessageMixin, DeleteView):
+
+    model = Sensor
+    template_name = "sensor/sensors.html"
+    success_url = reverse_lazy("sensors")
+    success_message = "The sensor '%(name)s' was deleted successfully."
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % {'name': self.object.name}
+
+@staff_login_required
+def addSensor(request):
+
+    if not request.user.staff.is_sales:
+        messages.error(request, "The staff user is not in sales group")
+        return redirect("sensors")
+    
+    if request.method == "GET":
+
+        try:
+            
+            # Get the form
+            addSensorForm = AddSensorForm()
+
+            return render(request, template_name="sensor/addSensor.html", context={
+                "title": "Add Sensor",
+                "addSensorForm": addSensorForm
+            })
+
+        except Exception as e:
+            messages.error(request, f"The addition of a sensor is not currently available: {str(e)}")
+            return redirect("sensors")
+    
+    elif request.method == "POST":
+            
+        try:
+
+            # Get the from from the post request
+            addSensorForm = AddSensorForm(request.POST, request.FILES)
+            if not addSensorForm.is_valid():
+                raise ValueError("The form is not valid")
+            
+            addSensorForm.save()
+
+            messages.success(request, "The new sensor has been correctly created")
+            return redirect("sensors")
+            
+        except Exception as e:
+            messages.error(request, f"The new sensor has not been created: {str(e)}")
+            return redirect("sensors_add")
+
+# Update a sensor - Sales staff
+@staff_login_required
+@require_POST
+def updateSensor(request, pk):
+    
+    try:
+        
+        if not request.user.staff.is_sales:
+            raise ValueError("You don't have right permissions")
+        
+        # Get the sensor
+        sensor = Sensor.objects.get(pk=pk)
+        if not sensor:
+            raise ValueError("The sensor doesn't exist")
+        
+        # Get the form 
+        sensorForm = SensorForm(request.POST, request.FILES, instance=sensor)
+        if not sensorForm.is_valid():
+            raise ValueError(f"The form is not valid: {sensorForm.errors}")
+        
+        sensor = sensorForm.save(commit=False)
+    
+        # Se l'utente NON ha caricato una nuova immagine, mantieni quella vecchia
+        if not request.FILES.get('image'):
+            sensor.image = Sensor.objects.get(pk=pk).image
+
+        sensor.save()
+        sensorForm.save_m2m()
+            
+        messages.success(request, "The sensor has been successfully updated")
+
+    except Exception as e:
+        messages.error(request, f"The sensor has not been updated: {str(e)}")
+    
+    return redirect("sensors")
+
+# View of all orders
+@method_decorator(staff_login_required, name='dispatch')
+class SensorListView(ListView):
+    model = Sensor
+    template_name = 'sensor/sensors.html'
+    context_object_name = 'sensors'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Sensors"
+
+        context["sensorForm"] = SensorForm(disabled=True)
+
+        return context
+    
+
+    def get_queryset(self):
+        return Sensor.objects.all().order_by('name')
+
 # Add a new sensor type
 @staff_login_required
 def addSensortype(request): 
