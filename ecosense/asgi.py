@@ -24,6 +24,7 @@ main_app = ProtocolTypeRouter({
 if settings.DEBUG:
     static_app = Starlette(routes=[
         Mount("/static", app=StaticFiles(directory=settings.STATIC_ROOT), name="static"),
+        Mount("/media", app=StaticFiles(directory=settings.MEDIA_ROOT), name="media"),
     ])
 
     async def application(scope, receive, send):

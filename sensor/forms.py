@@ -1,5 +1,28 @@
 from django import forms
-from .models import SensorItem, SensorType
+from .models import *
+
+class AddSensorForm(forms.ModelForm):
+
+    class Meta:
+        model = Sensor
+        exclude = ["quantity"]
+
+class SensorForm(forms.ModelForm):
+
+    class Meta:
+        model = Sensor
+        exclude = []
+
+    def __init__(self, *args, disabled=False, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if disabled:
+            self.fields['quantity'].disabled = True
+
+    def clean_quantity(self):
+        if self.fields['quantity'].disabled and self.instance:
+            return self.instance.quantity
+        return self.cleaned_data['quantity']
 
 class SensorTypeForm(forms.ModelForm):
 

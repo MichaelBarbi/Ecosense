@@ -1,9 +1,9 @@
+import os
 from django.db import models
 from django.core.validators import MinValueValidator
 from cryptography.fernet import Fernet
 from user.models import Customer
 from group.models import *
-import os
 
 
 key = os.getenv("encryptKey")
@@ -28,12 +28,15 @@ class SensorType(models.Model):
         verbose_name_plural = "Types of sensors"
         db_table = "sensor_type"
 
+    def __str__(self):
+        return self.name
+
 
 # Sensors to show in catalog
 class Sensor(models.Model):
 
-    image = models.TextField(max_length=2000, blank=True)
-    quantity = models.PositiveIntegerField(default=0)       # Quantity cannot be < 0
+    image = models.ImageField(upload_to='images/sensors', blank=True, null=True, default="images/sensors/na.png")
+    quantity = models.PositiveIntegerField(default=0, blank=True, null=True)       # Quantity cannot be < 0
     description = models.TextField(max_length=1000, blank=True)
     name = models.CharField(max_length=50, unique=True)
     price = models.DecimalField(decimal_places=2, max_digits=10 ,default=0.00, validators=[MinValueValidator(0)])
@@ -47,6 +50,11 @@ class Sensor(models.Model):
         constraints = [
             models.CheckConstraint(check=models.Q(price__gte=0), name="price_non_negative") # This creates a db costraint
         ]
+
+    def is_in_orders(self):
+        from order.models import OrderItem
+        return OrderItem.objects.filter(sensor=self).exists()
+
 
 # Sensor purchased by a customer
 class SensorItem(models.Model):

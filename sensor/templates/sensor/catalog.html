@@ -148,7 +148,7 @@
                             <div class="card" style="width: 100%; margin-top: 3em; height: 873px;">
                                 <div class="card-body d-flex flex-column">
 
-                                    <img src="{% static sensor.image %}" class="card-img-top" alt="Sensor image" width="357" height="357" />
+                                    <img src="{{ sensor.image.url }}" class="card-img-top" alt="Sensor image" width="357" height="357" />
 
                                     <div class="mt-4">
                                         <h5 class="card-title">{{ sensor.name }}</h5>
@@ -182,7 +182,11 @@
 
                                         </div>
 
-                                        <button class="btn btn-success add-to-cart-btn" data-sensor-id="{{ sensor.id }}">Add to Cart</button>
+                                        {% if request.user.customer %}
+                                            <button class="btn btn-success add-to-cart-btn" data-sensor-id="{{ sensor.id }}">Add to Cart</button>
+                                        {% else %}
+                                            <p>You are not a customer</p>
+                                        {% endif %}
                                     </div>
 
                                 </div>

@@ -13,5 +13,9 @@ urlpatterns = [
     path("sensor-types/", views.SensorTypeLsitView.as_view(), name="sensor_types"),
     path("sensor-types/add", views.addSensortype, name="sensor_types_add"),
     path("sensor-types/<int:typeId>/edit", views.sensorTypeUpdate, name="sensor_types_update"),
-    path("sensor-types/<int:pk>/delete", views.SensorTypeDeleteView.as_view(), name="sensor_types_delete")
+    path("sensor-types/<int:pk>/delete", views.SensorTypeDeleteView.as_view(), name="sensor_types_delete"),
+    path("sensors/staff/", views.SensorListView.as_view(), name="sensors"),
+    path("sensors/staff/add", views.addSensor, name="sensors_add"),
+    path("sensors/staff/<int:pk>/delete", views.SensorDeleteView.as_view(), name="sensors_delete"),
+    path("sensors/staff/<int:pk>/update/", views.updateSensor, name="sensors_update")
 ]
