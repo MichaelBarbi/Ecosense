@@ -17,5 +17,9 @@ urlpatterns = [
     path("sensors/staff/", views.SensorListView.as_view(), name="sensors"),
     path("sensors/staff/add", views.addSensor, name="sensors_add"),
     path("sensors/staff/<int:pk>/delete", views.SensorDeleteView.as_view(), name="sensors_delete"),
-    path("sensors/staff/<int:pk>/update/", views.updateSensor, name="sensors_update")
+    path("sensors/staff/<int:pk>/update/", views.updateSensor, name="sensors_update"),
+    path("sensors/items/", views.SensorItemsListView.as_view(), name="sensor_items"),
+    path("sensors/items/add", views.sensorItemAdd, name="sensor_items_add"),
+    path("sensors/items/<int:pk>/update", views.sensorItemUpdateView, name="sensor_items_update"),
+    path("sensors/items/<int:pk>/delete", views.SensorItemDeleteView.as_view(), name="sensor_items_delete"),
 ]

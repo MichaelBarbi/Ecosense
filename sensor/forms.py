@@ -1,6 +1,24 @@
 from django import forms
 from .models import *
 
+class SensorItemAddForm(forms.ModelForm):
+
+    class Meta:
+        model = SensorItem
+        fields  = ["registration_code", "password", "api_key", "sensor"]
+
+class SensorItemUpdateForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['password'].required = False
+        self.fields['api_key'].required = False
+
+    class Meta:
+        model = SensorItem
+        fields  = ["registration_code", "password", "api_key", "sensor"]
+
 class AddSensorForm(forms.ModelForm):
 
     class Meta:

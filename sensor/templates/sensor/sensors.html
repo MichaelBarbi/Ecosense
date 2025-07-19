@@ -198,7 +198,6 @@
                 const typesString = this.dataset.types;
                 const selectedTypeIds = typesString.split(',').map(id => parseInt(id));
 
-                // Riempie i campi del form
                 document.getElementById("id_name").value = name;
                 document.getElementById("id_description").value = description;
                 document.getElementById("id_quantity").value = quantity;
@@ -210,8 +209,7 @@
                         option.selected = selectedTypeIds.includes(parseInt(option.value));
                     }
                 }
-
-                // Imposta l'action corretta del form (es: /sensors/3/update/)
+                
                 document.getElementById("updateSensorForm").action = `/sensors/staff/${id}/update/`;
             });
         });

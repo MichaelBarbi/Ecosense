@@ -5,7 +5,7 @@ from .models import *
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from order.models import Cart, CartItem
-from user.views import customer_login_required, staff_login_required
+from user.views import customer_login_required, staff_login_required, technical_login_required
 from order.models import Order
 from django.contrib import messages
 from .forms import *
@@ -16,6 +16,146 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
+
+@method_decorator(technical_login_required, name="dispatch")
+class SensorItemDeleteView(SuccessMessageMixin, DeleteView):
+
+    model = SensorItem
+    template_name = "sensor/sensorItems.html"
+    success_url = reverse_lazy("sensor_items")
+    success_message = "The sensor item '%(name)s' was deleted successfully."
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % {'name': self.object.get_registration_code()}
+
+@technical_login_required
+def sensorItemAdd(request):
+
+    if request.method == "GET":
+
+        try:
+
+            # Get the form
+            sensorItemAddForm = SensorItemAddForm()
+
+            return render(
+                request,
+                template_name="sensor/sensorItemAdd.html",
+                context={
+                    "title": "Add Sensor Item",
+                    "sensorItemAddForm": sensorItemAddForm
+                }
+            )
+
+        except Exception as e:
+            messages.error(request, f"The addition of a sensor item is not currently available: {str(e)}")
+            return redirect("sensor_items")
+        
+    elif request.method == "POST":
+
+        try:
+            
+            # Get the form
+            sensorItemAddForm = SensorItemAddForm(request.POST)
+            if not sensorItemAddForm.is_valid():
+                raise ValueError("The form is invalid")
+            
+            sensorItemAddForm.save()
+
+            messages.success(request, "The new sensor has been successfully created")
+            return redirect("sensor_items")
+
+        except Exception as e:
+            messages.error(request, f"The new sensor item has not been created: {str(e)}")
+            return redirect("sensor_items_add")
+
+@technical_login_required
+@require_POST
+def sensorItemUpdateView(request, pk):
+    try:
+        sensorItem = get_object_or_404(SensorItem, pk=pk)
+        sensorItemForm = SensorItemUpdateForm(request.POST)
+
+        if not sensorItemForm.is_valid():
+            raise ValueError("The form is invalid")
+
+        plain_code = sensorItemForm.cleaned_data["registration_code"]
+
+        for item in SensorItem.objects.exclude(pk=sensorItem.pk):
+            decrypted = item.get_registration_code()
+            if decrypted == plain_code:
+                raise ValueError("Registration code already in use")
+
+        sensorItem.registration_code = encrypt_value(plain_code)
+
+        if sensorItemForm.cleaned_data["password"]:
+            sensorItem.password = encrypt_value(sensorItemForm.cleaned_data["password"])
+
+        if sensorItemForm.cleaned_data["api_key"]:
+            sensorItem.api_key = encrypt_value(sensorItemForm.cleaned_data["api_key"])
+
+        sensorItem.sensor = sensorItemForm.cleaned_data["sensor"]
+        sensorItem.save()
+
+        messages.success(request, "Sensor item updated successfully.")
+
+    except Exception as e:
+        messages.error(request, f"The sensor item has not been updated: {str(e)}")
+
+    return redirect("sensor_items")
+
+
+@method_decorator(technical_login_required, name="dispatch")
+class SensorItemsListView(ListView):
+
+    model = SensorItem
+    template_name = "sensor/sensorItems.html"
+    success_url = reverse_lazy("sensor_items")
+    context_object_name = 'sensorItems'
+    paginate_by = 30
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        get_params = self.request.GET.copy()
+        if 'page' in get_params:
+            get_params.pop('page')
+        context['query_string'] = get_params.urlencode()
+
+        context["title"] = "Sensor Items"
+        context["sensorItemUpdateForm"] = SensorItemUpdateForm()
+        context["sensorsNames"] = Sensor.objects.values_list("name", flat=True).distinct()
+
+        return context
+
+    
+    def get_queryset(self):
+        queryset = SensorItem.objects.select_related("sensor").all()
+
+        # Get the params
+        sensor_name_filter = self.request.GET.get("filter_sensor_name")
+        sensor_select_filter = self.request.GET.get("filter_sensor")
+        customer_filter = self.request.GET.get("filter_customer")
+        is_registered = self.request.GET.get("is_registered")
+
+        if sensor_name_filter:
+            queryset = queryset.order_by("sensor__name")
+
+        if sensor_select_filter:
+            queryset = queryset.filter(sensor__name=sensor_select_filter)
+
+        if customer_filter:
+            queryset = queryset.filter(order__customer__user__username__icontains=customer_filter)
+
+        if is_registered == "true":
+            queryset = queryset.filter(is_registered=True)
+        elif is_registered == "false":
+            queryset = queryset.filter(is_registered=False)
+
+        return queryset
+    
+    
+    
 
 @method_decorator(staff_login_required, name="dispatch")
 class SensorDeleteView(SuccessMessageMixin, DeleteView):
