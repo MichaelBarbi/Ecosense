@@ -22,6 +22,9 @@ class Staff(models.Model):
     user = models.OneToOneField(User, related_name="staff", on_delete=models.CASCADE)
     roles = models.ManyToManyField('StaffRole', blank=True)
 
+    def __str__(self):
+        return self.user.username
+
     def save(self, *args, **kwargs):
 
         if hasattr(self.user, 'customer'):

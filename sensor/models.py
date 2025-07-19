@@ -42,6 +42,9 @@ class Sensor(models.Model):
     price = models.DecimalField(decimal_places=2, max_digits=10 ,default=0.00, validators=[MinValueValidator(0)])
     types = models.ManyToManyField(SensorType, related_name="sensors")
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         ordering = ["name"]
         verbose_name = "Sensor"
@@ -60,11 +63,11 @@ class Sensor(models.Model):
 class SensorItem(models.Model):
 
     sensor = models.ForeignKey(Sensor, related_name="sensorItems", on_delete=models.CASCADE)
-    registration_code = models.CharField(max_length=200)
+    registration_code = models.CharField(max_length=600)
     is_registered = models.BooleanField(default=False)
-    api_key = models.CharField(max_length=200)
+    api_key = models.CharField(max_length=500)
     order = models.ForeignKey("order.Order", related_name="sensorItems", null=True, blank=True, on_delete=models.SET_NULL)
-    password = models.CharField(max_length=200)
+    password = models.CharField(max_length=500)
     label = models.CharField(max_length=70, blank=True, null=True)
     customer = models.ForeignKey(Customer, related_name="sensorItems", on_delete=models.CASCADE ,null=True, blank=True)
     group = models.ForeignKey(Group, related_name="sensorItems", on_delete=models.SET_NULL, null=True, blank=True)
@@ -84,6 +87,10 @@ class SensorItem(models.Model):
             self.api_key = encrypt_value(self.api_key)
             self.password = encrypt_value(self.password)
         super().save(*args, **kwargs)
+
+    @property
+    def is_bought(self):
+        return self.order is not None
 
 
     # Custom getter functions to retrieve data decrypted

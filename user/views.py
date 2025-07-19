@@ -36,6 +36,30 @@ def staff_login_required(view_func):
         return redirect('/unauthorized/')
     return _wrapped_view
 
+def sales_login_required(view_func):
+
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+
+        if hasattr(request.user, 'staff') and request.user.staff.is_sales:
+            return view_func(request, *args, **kwargs)
+        
+        return redirect("/unauthorized/")
+    return _wrapped_view
+
+def technical_login_required(view_func):
+
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+
+        if hasattr(request.user, 'staff') and request.user.staff.is_technical:
+            return view_func(request, *args, **kwargs)
+        
+        return redirect("/unauthorized/")
+    return _wrapped_view
+
 def unauthorized(request):
     return render(request, 'unauthorized.html', {'title': 'Unauthorized access'})
 

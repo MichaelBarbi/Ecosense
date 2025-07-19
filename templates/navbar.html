@@ -55,7 +55,7 @@
 
                                 <ul class="dropdown-menu mt-3 cart-options">
                                     <li><a class="dropdown-item" href="{% url 'cart' %}">View Cart</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li><hr class="dropdown-divider" style="margin: 5px 0px !important;" ></li>
                                     <li><a class="dropdown-item" href="{% url 'checkout' %}">Go to Checkout</a></li>
                                 </ul>
 
@@ -89,7 +89,7 @@
                                     {% endif %}
                                         
                                     {% if user.staff.is_technical %}
-                                            <li><a class="dropdown-item" href="#">Sensor Items</a></li>                                        
+                                        <li><a class="dropdown-item" href="{% url 'sensor_items' %}">Sensor Items</a></li>                                        
                                     {% endif %}
 
                                 {% endif %}
