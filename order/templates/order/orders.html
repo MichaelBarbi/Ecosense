@@ -167,8 +167,6 @@
                 const orderId = this.dataset.orderId;
                 const newStatus = this.value;
 
-                console.log("gydgeyd: ", `/orders/${orderId}/update-status/`)
-
                 fetch(`/orders/${orderId}/update-status/`, {
                     method: 'POST',
                     headers: {
