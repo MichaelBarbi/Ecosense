@@ -12,6 +12,22 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from functools import wraps
 
+def customer_or_sales_login_required(view_func):
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+        user = request.user
+
+        is_customer = hasattr(user, 'customer')
+        is_sales = hasattr(user, 'staff') and user.staff.is_sales
+
+        if is_customer or is_sales:
+            return view_func(request, *args, **kwargs)
+
+        return redirect('/unauthorized/')
+    
+    return _wrapped_view
+
 def customer_login_required(view_func):
 
     @wraps(view_func)

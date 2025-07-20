@@ -8,6 +8,7 @@ urlpatterns = [
     path("cart/update-item/<int:item_id>/increase/", views.increase_quantity, name="cart_increase_quantity"),
     path("cart/update-item/<int:item_id>/decrease/", views.decrease_quantity, name="cart_decrease_quantity"),
     path("checkout/", views.checkoutView, name="checkout"),
-    path("orders/", views.CustomerOrdersListView.as_view(), name="orders"),
-    path("orders/<int:order_id>/", views.CustomerOrderView.as_view(), name="order")
+    path("orders/", views.OrdersListView.as_view(), name="orders"),
+    path("orders/<int:order_id>/", views.CustomerOrderView.as_view(), name="order"),
+    path("orders/<int:pk>/update-status/", views.orderStatusUpdate, name="order_update_status")
 ]

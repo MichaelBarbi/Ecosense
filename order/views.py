@@ -1,6 +1,7 @@
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from user.views import customer_login_required
+from user.views import customer_login_required, customer_or_sales_login_required, sales_login_required
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView, ListView, View
@@ -10,8 +11,43 @@ from shipping.forms import *
 from payment.forms import *
 from shipping.forms import *
 from sensor.models import SensorItem
+import json
 
-@method_decorator(customer_login_required, name="dispatch")
+@sales_login_required
+@require_POST
+def orderStatusUpdate(request, pk):
+
+    try:
+
+        order = get_object_or_404(Order, pk=pk)
+        if not order:
+            raise ValueError("The order doesn't exist")
+        
+        # Get the status
+        data = json.loads(request.body)
+        new_status = data.get("status")
+
+        if not new_status:
+            raise ValueError("The status is invalid")
+        
+        order.status = int(new_status)
+
+        if int(new_status) == OrderStatus.COMPLETED:
+            order.arrived_at = datetime.now()
+        else:
+            order.arrived_at = None
+
+        order.save()
+
+        messages.success(request, f"The status for order n. {order.pk} has been successfully updated")
+        return JsonResponse({"success": True})
+
+    except Exception as e:
+        messages.error(request, f"An error occured while updating the status: {str(e)}")
+        return JsonResponse({"error": str(e)}, status=500)
+        
+
+@method_decorator(customer_or_sales_login_required, name="dispatch")
 class CustomerOrderView(View):
     
     template_name = "order/order.html"
@@ -19,8 +55,12 @@ class CustomerOrderView(View):
     # Return the order requested
     def get(self, request, order_id):
 
-        customer = request.user.customer
-        order = get_object_or_404(Order, customer=customer, order_id=order_id)
+        order = None
+
+        if hasattr(request.user, "customer"):
+            order = get_object_or_404(Order, customer=request.user.customer, order_id=order_id)
+        else:
+            order = get_object_or_404(Order, pk=order_id)
 
         context = {
             "title": "Order " + str(order_id),
@@ -37,8 +77,12 @@ class CustomerOrderView(View):
     # Delete that order = Set status cancelled and delete all relations between the order and SensorItems
     def post(self, request, order_id):
 
-        customer = request.user.customer
-        order = get_object_or_404(Order, customer=customer, order_id=order_id)
+        order = None
+
+        if hasattr(request.user, "customer"):
+            order = get_object_or_404(Order, customer=request.user.customer, order_id=order_id)
+        else:
+            order = get_object_or_404(Order, pk=order_id)
 
         if order.status >= OrderStatus.SHIPPED:
             messages.warning(request, "Order cannot be refunded.")
@@ -57,22 +101,30 @@ class CustomerOrderView(View):
         return redirect(request.META.get("HTTP_REFERER", reverse("order", kwargs={"order_id": order_id})))
 
 # To show all orders of a customer
-@method_decorator(customer_login_required, name='dispatch')
-class CustomerOrdersListView(ListView):
+@method_decorator(customer_or_sales_login_required, name="dispatch")
+class OrdersListView(ListView):
     model = Order
     template_name = 'order/orders.html'
     context_object_name = 'orders'
-    paginate_by = 10
+    paginate_by = 20
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = "Orders"
+        context["order_statuses"] = Order.getOrderStatusList()
 
         return context
     
 
     def get_queryset(self):
-        return Order.objects.filter(customer=self.request.user.customer).order_by('-created_at')
+        user = self.request.user
+
+        if hasattr(user, 'customer'):
+            return Order.objects.filter(customer=user.customer).order_by('-created_at')
+        elif hasattr(user, 'staff') and user.staff.is_sales:
+            return Order.objects.all().order_by('-created_at')
+        else:
+            return Order.objects.none()
 
 
 # GET => Get checkout page
