@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+        main {
+                min-height: 100vh;
+            }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            color: #28a745;
+        }
+        </style>
+
+{% endblock css %}
+
+{% block content %}
+{{ block.super }}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">
+                        {% if request.user.customer %}
+                            My Tickets
+                        {% else %}
+                            Tickets
+                        {% endif %}
+                    </h1>
+
+                    <!-- Show every ticket -->
+                    {% if tickets %}
+
+                        {% if is_paginated %}
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination">
+
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                                    {% endif %}
+
+                                    <li class="page-item"><a class="page-link" href="#">{{ page_obj.number }}</a></li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                                    {% endif %}
+
+                                </ul>
+                            </nav>
+                        {% endif %}
+
+                        <table class="table">
+
+                            <thead>
+                                <th scope="col">ID</th>
+                                <th scope="col">Subject</th>
+                                {% if request.user.staff %}
+                                    <th scope="col">Customer</th>
+                                {% endif %}
+                                <th scope="col">Status</th>
+                                <th scope="col">Staff</th>
+                            </thead>
+
+                            <tbody>
+                                {% for ticket in tickets %}
+                                    <tr class="align-middle">
+
+                                        <td>
+                                            <a href="{% url 'ticket:tickets_view' ticket.pk %}">{{ ticket.pk }}</a>
+                                        </td>
+
+                                        <td>{{ ticket.subject }}</td>
+
+                                        {% if request.user.staff %}
+                                            <td>{{ ticket.customer.user.username }}</td>
+                                        {% endif %}
+                                        
+                                        <td>
+                                            {% if request.user.staff %}
+                                                <select name="status" class="status-select" data-ticket-id="{{ ticket.pk }}" {% if ticket.staff and request.user.staff != ticket.staff %}disabled{% endif %}>
+                                                    {% for value, label in tickets_statuses %}
+                                                        <option value="{{ value }}" {% if ticket.status == value %}selected{% endif %}>
+                                                            {{ label }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            {% else %}
+                                                {{ ticket.status }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>{{ ticket.staff.user.username }}</td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                    {% else %}
+                        <p>No tickets available</p>
+                    {% endif %}
+
+                    {% if request.user.customer %}
+                        <div class="d-flex justify-content-start" style="margin-top: 2em;">
+                            <form method="get" action="{% url 'ticket:tickets_add' %}">
+                                <button type="submit" class="btn btn-success me-2">Create a ticket</button>                            
+                            </form>
+                        </div>
+                    {% endif %}
+
+                </div>                
+            </div>
+        <section>
+    </main>
+{% endblock content %}
+
+{% block js %}
+{{block.super}}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        document.querySelectorAll('.status-select').forEach(function (select) {
+
+            select.addEventListener('change', function () {
+
+                const ticketId = this.dataset.ticketId;
+                const newStatus = this.value;
+
+                fetch(`/ticket/${ticketId}/update-status/`, {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("An error occurred while updating the status");
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => alert("Error: " + error.message));
+            });
+
+        });
+
+        // Function to read CSRF from cookie
+        function getCookie(name) {
+
+            let cookieValue = null;
+            
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+
+                    const cookie = cookies[i].trim();
+
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+    });
+</script>
+
+{% endblock js %}

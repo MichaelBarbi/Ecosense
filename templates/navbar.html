@@ -73,7 +73,7 @@
                                 {% if user.customer %}
                                     <li><a class="dropdown-item" href="{% url 'registered_sensors' %}">Sensors</a></li>
                                     <li><a class="dropdown-item" href="{% url 'orders' %}">Orders</a></li>
-                                    <li><a class="dropdown-item" href="#">Ticket</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'ticket:tickets' %}">Tickets</a></li>
                                 {% endif %}
 
                                 {% if user.staff %}
@@ -81,7 +81,7 @@
                                     {% if user.staff.is_sales or user.staff.is_technical %}
                                         <li><a class="dropdown-item" href="{% url 'sensor_types' %}">Sensor types</a></li>
                                         <li><a class="dropdown-item" href="{% url 'sensors' %}">Sensors</a></li>
-                                        <li><a class="dropdown-item" href="#">Ticket</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'ticket:tickets' %}">Tickets</a></li>
                                     {% endif %}
                                         
                                     {% if user.staff.is_sales %}
