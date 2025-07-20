@@ -17,5 +17,8 @@ urlpatterns = [
     path('', include("order.urls")),
 
     # Group routes
-    path('groups/', include("group.urls"))
+    path('groups/', include("group.urls")),
+
+    # Ticket router
+    path('ticket/', include("ticket.urls"))
 ]

@@ -19,6 +19,7 @@ load_dotenv()
 
 # Debug
 DEBUG = os.getenv("DEBUG")
+APPEND_SLASH = os.getenv("APPEND_SLASH")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'channels',
+    'django_extensions'
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

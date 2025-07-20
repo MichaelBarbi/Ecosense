@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+{{ block.super }}
+
+    <style>
+
+        main {
+                min-height: 100vh;
+        }
+
+        .ctn {
+            max-width: 900px;
+            min-width: 100%;
+            margin: 25px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .info {
+            margin: 0px 0px;
+        }
+    </style>
+
+{% endblock css %}
+
+{% block content %}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    {% if ticketViewForm and ticket and ticketMessagesForms and newTicketMessageForm %}
+
+                        <h1 class="mb-4 fw-bold">Ticket n. {{ ticket.pk }}</h1>                        
+
+                        <!-- Ticket-->
+                        <form action="#">
+                            {% csrf_token %}
+                            {{ ticketViewForm|crispy }}
+                        </form>
+
+                        <hr class="hr mt-4" />
+
+                        <!-- Ticket messages-->
+                        <h2 class="mb-4 fw-bold">Message History</h2>
+                        {% for ticketMessageForm in ticketMessagesForms %}
+                            <form action="#" class="ctn">
+                                {{ ticketMessageForm|crispy }}
+                            </form>
+                        {% endfor %}
+                        <hr class="hr mt-4" />
+
+                        {% if canAnswer %}
+                            <div>
+                                <form action="{% url 'ticket:tickets_view' ticket.pk %}" method="post" >
+                                    {% csrf_token %}
+
+                                    <h2 class="mb-4 fw-bold">New Message</h2>
+
+                                    {{ newTicketMessageForm|crispy }}
+
+                                    <div class="d-flex justify-content-start mt-4 gap-3">
+
+                                        <div id="back">
+                                            <button type="button" class="btn btn-dark"><a href="{% url 'ticket:tickets' %}">Back</a></button>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-success refund" >Submit</button>
+                                    </div>
+                                    
+                                </form>
+                            </div>
+                        {% endif %}
+
+                    {% else %}
+                        <p>The ticket isn't available</p>
+                    {% endif %}
+                </div>                
+            </div>
+        <section>
+    </main>
+
+{% endblock content %}

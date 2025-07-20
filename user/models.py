@@ -12,6 +12,9 @@ class Customer(models.Model):
         if hasattr(self.user, 'staff'):
             raise ValidationError("A user can't be both Customer and Staff.")
         super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return str(self.user)
 
 
 # Permissions as Groups
@@ -23,7 +26,7 @@ class Staff(models.Model):
     roles = models.ManyToManyField('StaffRole', blank=True)
 
     def __str__(self):
-        return self.user.username
+        return str(self.user)
 
     def save(self, *args, **kwargs):
 
