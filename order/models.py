@@ -62,6 +62,10 @@ class Order(models.Model):
             models.UniqueConstraint(fields=["customer", "order_id"], name="unique_order_id_per_customer"),
         ]
 
+    @staticmethod
+    def getOrderStatusList():
+        return list(OrderStatus.choices)
+
     def save(self, *args, **kwargs):
         if self.order_id is None:  # only set if not already defined
 

@@ -48,7 +48,13 @@
 
                 <div class="container ctn">
 
-                    <h1 class="mb-4 fw-bold">My Orders</h1>
+                    <h1 class="mb-4 fw-bold">
+                        {% if request.user.customer %}
+                            My Orders
+                        {% else %}
+                            Orders
+                        {% endif %}
+                    </h1>
 
                     <!-- Show every order -->
                     {% if orders %}
@@ -78,7 +84,13 @@
                                 <th scope="col">Order ID</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Total</th>
-                                <th scope="col" title="Refund is only available if the order has not been shipped yet">Refund</th>
+                                <th scope="col">
+                                    {% if request.user.customer %}
+                                        Refund
+                                    {% else %}
+                                        Delete
+                                    {% endif %}
+                                </th>
                             </thead>
 
                             <tbody>
@@ -87,20 +99,44 @@
 
                                         <td>{{ order.created_at|date:"d/m/Y" }}</td>
 
-                                        <td><a href="{% url 'order' order.order_id %}">{{ order.order_id }}</a></td>
+                                        <td>
+                                            {% if request.user.customer %}
+                                                <a href="{% url 'order' order.order_id %}">{{ order.order_id }}</a>
+                                            {% else %}
+                                                <a href="{% url 'order' order.pk %}">{{ order.pk }}</a>
+                                            {% endif %}
+                                        </td>
 
-                                        <td>{{ order.get_status_display }}</td>
+                                        <td>
+                                            <select name="status" class="status-select" data-order-id="{{ order.pk }}">
+                                                {% for value, label in order_statuses %}
+                                                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                                        {{ label }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
 
                                         <td>{{ order.total_price }} €</td>
 
                                         <td>
-                                            <form action="{% url 'order' order.order_id %}" method="post">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger refund" 
-                                                    {% if order.status >= 4 %}disabled{% endif %}>
-                                                    Refund
-                                                </button>
-                                            </form>
+                                            {% if request.user.customer %}
+                                                <form action="{% url 'order' order.order_id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger refund" 
+                                                        {% if order.status >= 4 %}disabled{% endif %}>
+                                                        Refund
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <form action="{% url 'order' order.pk %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger refund" 
+                                                        {% if order.status >= 4 %}disabled{% endif %}>
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            {% endif %}
                                         </td>
 
                                     </tr>
@@ -117,3 +153,66 @@
         <section>
     </main>
 {% endblock content %}
+
+{% block js %}
+{{block.super}}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        document.querySelectorAll('.status-select').forEach(function (select) {
+
+            select.addEventListener('change', function () {
+
+                const orderId = this.dataset.orderId;
+                const newStatus = this.value;
+
+                console.log("gydgeyd: ", `/orders/${orderId}/update-status/`)
+
+                fetch(`/orders/${orderId}/update-status/`, {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("An error occurred while updating the status");
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => alert("Error: " + error.message));
+            });
+
+        });
+
+        // Function to read CSRF from cookie
+        function getCookie(name) {
+
+            let cookieValue = null;
+            
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+
+                for (let i = 0; i < cookies.length; i++) {
+
+                    const cookie = cookies[i].trim();
+
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+    });
+</script>
+
+{% endblock js %}
