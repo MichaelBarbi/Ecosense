@@ -4,6 +4,12 @@ from sensor.models import SensorItem
 from group.models import *
 from sensor.forms import SelectGroupForm
 
+def unauthorized(request):
+
+    return render(request, template_name="unauthorized.html", context={
+        "title": "Unauthorized"
+    })
+
 # Home page
 def home(request):
 

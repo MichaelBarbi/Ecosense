@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("unauthorized/", views.unauthorized, name="unauthorized"),
     re_path(r'^$|^/$|^home/$', views.home, name="home"),
     
     # User routes
