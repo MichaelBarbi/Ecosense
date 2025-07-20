@@ -140,7 +140,6 @@
 <script>
 
     function changeFormAction(typeId, name, description, symbol) {
-        console.log(typeId, name, description, symbol)
         document.getElementById("changeLabelForm").action=(typeId ?? '') + "/edit"; 
         document.getElementById("id_name").value = name
         document.getElementById("id_description").textContent = description
