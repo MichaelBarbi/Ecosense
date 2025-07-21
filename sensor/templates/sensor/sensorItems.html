@@ -191,17 +191,21 @@
                                 {% for sensorItem in sensorItems.all %}
                                     <tr class="align-middle">
 
-                                        <td>
-                                            <a href="#" style="color: #000000">
-                                                <p 
-                                                    class="m-0" 
-                                                    onclick="changeFormAction('{{ sensorItem.pk }}', '{{ sensorItem.get_registration_code }}', '{{ sensorItem.sensor.pk }}')" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#updateSensorItem">
-                                                    {{ sensorItem.get_registration_code }}
-                                                </p>
-                                            </a>
-                                        </td>
+                                        {% if request.user.staff.is_sales %}
+                                            <td>
+                                                <a href="#" style="color: #000000">
+                                                    <p 
+                                                        class="m-0" 
+                                                        onclick="changeFormAction('{{ sensorItem.pk }}', '{{ sensorItem.get_registration_code }}', '{{ sensorItem.sensor.pk }}')" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#updateSensorItem">
+                                                        {{ sensorItem.get_registration_code }}
+                                                    </p>
+                                                </a>
+                                            </td>
+                                        {% else %}
+                                            <td>{{ sensorItem.get_registration_code }}</td>
+                                        {% endif %}
 
                                         <td>{{ sensorItem.sensor.name }}</td>
 

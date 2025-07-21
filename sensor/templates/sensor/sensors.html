@@ -117,19 +117,23 @@
                                             
                                             <img src="{{ sensor.image.url }}" alt="{{ sensor.name }}" width="70" height="97" />
 
-                                            <a href="#" style="color: #000000">
-                                                <p class="m-0 sensor-entry" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#updateSensor"
-                                                    data-id="{{ sensor.pk }}"
-                                                    data-name="{{ sensor.name }}"
-                                                    data-description="{{ sensor.description }}"
-                                                    data-quantity="{{ sensor.quantity }}"
-                                                    data-price="{{ sensor.price }}"
-                                                    data-types="{% for type in sensor.types.all %}{{ type.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
-                                                    {{sensor.name}}
-                                                </p>
-                                            </a>
+                                            {% if request.user.staff.is_sales %}
+                                                <a href="#" style="color: #000000">
+                                                    <p class="m-0 sensor-entry" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#updateSensor"
+                                                        data-id="{{ sensor.pk }}"
+                                                        data-name="{{ sensor.name }}"
+                                                        data-description="{{ sensor.description }}"
+                                                        data-quantity="{{ sensor.quantity }}"
+                                                        data-price="{{ sensor.price }}"
+                                                        data-types="{% for type in sensor.types.all %}{{ type.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                                                        {{sensor.name}}
+                                                    </p>
+                                                </a>
+                                            {% else %}
+                                                <p>{{sensor.name}}</p>
+                                            {% endif %}
                                         </td>
 
                                         <td>{{ sensor.description }}</td>
