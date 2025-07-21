@@ -108,13 +108,17 @@
                                         </td>
 
                                         <td>
-                                            <select name="status" class="status-select" data-order-id="{{ order.pk }}">
-                                                {% for value, label in order_statuses %}
-                                                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
-                                                        {{ label }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
+                                            {% if request.user.customer %}
+                                                {{ order.get_status_display }}
+                                            {% else %}
+                                                <select name="status" class="status-select" data-order-id="{{ order.pk }}">
+                                                    {% for value, label in order_statuses %}
+                                                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                                            {{ label }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            {% endif %}
                                         </td>
 
                                         <td>{{ order.total_price }} €</td>
