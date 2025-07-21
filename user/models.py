@@ -45,14 +45,6 @@ class Staff(models.Model):
 
         super().save(*args, **kwargs)
 
-        # If the staff member doesn't have specificated roles, I assign to him both roles
-        if self.roles.count() == 0:
-            for role in STAFF_ROLES:
-
-                r, _ = StaffRole.objects.get_or_create(name=role)
-                self.roles.add(r)
-            self.save()
-
     def has_role(self, role_name):
         return self.roles.filter(name=role_name).exists()
     
