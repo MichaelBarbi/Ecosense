@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
-from order.models import Order, OrderItem
+from order.models import Order, OrderItem, OrderStatus
 from sensor.models import Sensor, SensorItem
 from group.models import *
 from sensor.forms import SelectGroupForm
@@ -49,14 +49,14 @@ def home(request):
             
             try:
                 
-                orders = Order.objects.all()
+                orders = Order.objects.exclude(status=OrderStatus.CANCELLED)
                 
                 if orders:
 
                     # (1) Most purchased sensors
 
                     sensorTime = request.GET.get("sensorTime", "Today")
-                    order_items = OrderItem.objects.all()
+                    order_items = OrderItem.objects.filter(order__in=orders)
 
                     # Filter by time
                     if sensorTime == "Today":
@@ -168,7 +168,7 @@ def home(request):
                     ]
 
                     totalProfit = sum(float(x["profit"]) for x in profits if x["profit"])
-
+                    totalProfit_str = f"{totalProfit:.2f}"
 
                     context = {
                         "title": title,
@@ -178,7 +178,7 @@ def home(request):
                         "countries": countries,
                         "ordersGraph": ordersGraph,
                         "profits": profits,
-                        "totalProfit": totalProfit
+                        "totalProfit": totalProfit_str
                     }
                 
                 else:

@@ -27,7 +27,7 @@ def orderStatusUpdate(request, pk):
         data = json.loads(request.body)
         new_status = data.get("status")
 
-        if not new_status:
+        if not new_status or order.status == OrderStatus.CANCELLED:
             raise ValueError("The status is invalid")
         
         order.status = int(new_status)

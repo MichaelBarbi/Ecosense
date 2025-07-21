@@ -111,7 +111,7 @@
                                             {% if request.user.customer %}
                                                 {{ order.get_status_display }}
                                             {% else %}
-                                                <select name="status" class="status-select" data-order-id="{{ order.pk }}">
+                                                <select name="status" class="status-select" data-order-id="{{ order.pk }}" {% if order.status == 6 %}disabled{% endif %}>
                                                     {% for value, label in order_statuses %}
                                                         <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
                                                             {{ label }}
@@ -136,7 +136,7 @@
                                                 <form action="{% url 'order' order.pk %}" method="post">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-danger refund" 
-                                                        {% if order.status >= 4 %}disabled{% endif %}>
+                                                        {% if order.status >= 4%}disabled{% endif %}>
                                                         Delete
                                                     </button>
                                                 </form>
