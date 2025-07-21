@@ -1,0 +1,273 @@
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+
+<style>
+
+    main {
+        min-height: 100vh;
+    }
+
+    .ctn {
+        max-width: 900px;
+        min-width: 100%;
+        margin: 25px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .box-stats {
+        width:50%;        
+        margin-top: 4em;
+    }
+
+    .stats {
+        text-align:center;     
+        height: 70vh;
+        margin-top: 2em
+    }
+
+</style>
+{% endblock css %}
+
+{% block content %}
+
+    <div>
+
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">Dashboard</h1>
+
+                    {% if ordersExist %}
+
+                        <div style="display: flex; justify-content: space-between;">
+
+                            {{ mostPurchasedSensors|json_script:"mostPurchasedSensors-data" }}
+                            {{ countries|json_script:"countries-data" }}
+                            {{ ordersGraph|json_script:"ordersGraph-data" }}
+                            {{ profits|json_script:"profits-data"}}
+                            
+                            <!-- Sensors most purchased -->
+                            {% if mostPurchasedSensors %}
+                                
+                                <div class="box-stats">
+                                    <h2 class="fw-bold">Most Purchased Sensors</h2>
+
+                                    <div class="stats">
+
+                                        <div class="btn-group mb-4" role="group">
+                                            <a href="?sensorTime=Today" class="btn {% if sensorTime == 'Today' %} btn-primary {% else %}btn-outline-primary{% endif %}">Today</a>
+                                            <a href="?sensorTime=Week"  class="btn {% if sensorTime == 'Week' %}  btn-primary {% else %}btn-outline-primary{% endif %}">Week</a>
+                                            <a href="?sensorTime=Month" class="btn {% if sensorTime == 'Month' %} btn-primary {% else %}btn-outline-primary{% endif %}">Month</a>
+                                            <a href="?sensorTime=Year"  class="btn {% if sensorTime == 'Year' %}  btn-primary {% else %}btn-outline-primary{% endif %}">Year</a>
+                                        </div>
+
+                                        <canvas id="mostPurchasedSensors"></canvas>
+                                    </div>
+
+                                </div>
+
+                            {% endif %}
+
+                            <!-- Geographical distribution of sensors -->
+                            {% if countries %}
+
+                                <div class="box-stats" style="text-align: right">
+                                    <h2 class="fw-bold">Geographical distribution of sensors</h2>
+
+                                    <div class="stats d-flex justify-content-end">
+                                        <canvas id="countries" ></canvas>
+                                    </div>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>     
+
+                        <!-- Annual number of orders -->
+                        {% if ordersGraph %}
+
+                            <div>
+                                <h2 class="fw-bold">Annual number of orders</h2>
+
+                                <div>
+                                    <canvas id="orders" ></canvas>
+                                </div>
+
+                            </div>
+                        
+                        {% endif %}
+
+                        <!-- Earnings -->
+                        {% if profits %}
+
+                            <div style="margin-top: 4em;">
+                                <h2 class="fw-bold">Annual Profit</h2>
+
+                                <h3 class="fw-bold" style="margin-top: 0.7em;">Total: {{totalProfit}} €</h3>
+
+                                <div>
+                                    <canvas id="profits" ></canvas>
+                                </div>
+
+                            </div>
+                        
+                        {% endif %}
+
+                    {% else %}
+                        <p>No sensors were purchased</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        <section>
+    </div>
+
+{% endblock content %}
+
+{% block js %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        const mostPurchasedSensorsCtx = document.getElementById('mostPurchasedSensors');
+        if (mostPurchasedSensorsCtx) {
+
+            const sensorData = JSON.parse(document.getElementById('mostPurchasedSensors-data').textContent);
+
+            const labels = sensorData.map(item => item.sensor.name);
+            const quantities = sensorData.map(item => item.quantity);
+
+            new Chart(mostPurchasedSensorsCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '{{ sensorTime }}',
+                        data: quantities,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        const countriesCtx = document.getElementById("countries") 
+        if (countriesCtx) {
+
+            const countriesData = JSON.parse(document.getElementById('countries-data').textContent);
+
+            const labels = countriesData.map(item => item.country)
+            const quantities = countriesData.map(item => item.quantity)
+            const bgColor = countriesData.map(item => "rgb(" + getRandomInt(255) + ", " + getRandomInt(255) + ", " + getRandomInt(255) + ")")
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: "Quantity",
+                    data: quantities,
+                    backgroundColor: bgColor,
+                    hoverOffset: 4
+                }]
+            };
+
+            const config = {
+                type: 'doughnut',
+                data: data,
+            };
+
+            new Chart(countriesCtx, config);
+
+        }
+
+        const ordersCtx = document.getElementById("orders")
+        if (ordersCtx) {
+
+            const ordersData = JSON.parse(document.getElementById('ordersGraph-data').textContent);
+
+            const labels = ordersData.map(item => item.month)
+            const quantities = ordersData.map(item => item.quantity)
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Quantity',
+                    data: quantities,
+                    fill: false,
+                    borderColor: "rgb(" + getRandomInt(255) + ", " + getRandomInt(255) + ", " + getRandomInt(255) + ")",
+                    tension: 0.1
+                }]
+            };
+
+            const config = {
+                type: 'line',
+                data: data,
+            };
+
+            new Chart(ordersCtx, config);
+
+        }
+
+        const profitsCtx = document.getElementById("profits")
+        if (profitsCtx) {
+
+            const profitsData = JSON.parse(document.getElementById('profits-data').textContent);
+
+            const labels = profitsData.map(item => item.month)
+            const quantities = profitsData.map(item => item.profit)
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    label: 'Profit',
+                    data: quantities,
+                    fill: false,
+                    borderColor: "rgb(" + getRandomInt(255) + ", " + getRandomInt(255) + ", " + getRandomInt(255) + ")",
+                    tension: 0.1
+                }]
+            };
+
+            const config = {
+                type: 'line',
+                data: data,
+            };
+
+            new Chart(profitsCtx, config);
+
+        }
+
+    </script>
+    
+{% endblock js %}

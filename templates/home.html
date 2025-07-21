@@ -75,7 +75,13 @@
 
             {% include "home/home_customer.html" %}
         
-        {% elif user.is_authenticated and user.staff %}
+        {% elif user.is_authenticated and user.staff and user.staff.is_sales %}
+
+            {% include "home/home_staff_sales.html" %}
+
+        {% elif user.is_authenticated and user.staff and user.staff.is_technical %}
+
+            {% include "home/home_staff_technical.html" %}
 
         {% else %}        
         
