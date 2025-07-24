@@ -104,3 +104,22 @@ class SensorItem(models.Model):
         return decrypt_value(self.registration_code)
 
 
+# Data sent by sensors
+class SensorData(models.Model):
+
+    type = models.ForeignKey(SensorType, related_name="SensorsData", on_delete=models.CASCADE)
+    value = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.01)])
+    date = models.DateTimeField(auto_now_add=True)
+    sensorItem = models.ForeignKey(SensorItem, related_name="Data", on_delete=models.CASCADE)
+
+    class Meta:
+        ordering=["id"]
+        verbose_name = "Sensor data"
+        verbose_name_plural = "Data from Sensors"
+        db_table = "sensor_data"
+
+
+    def __str__(self):
+        return f"{self.sensorItem.registration_code}: {self.type}={str(self.value)} ({str(self.date)})"
+    
+

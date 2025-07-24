@@ -16,3 +16,5 @@ class SensorItemAdmin(admin.ModelAdmin):
     # Avoid the manual adding operation
     def has_add_permission(self, request):
         return False
+    
+admin.site.register(SensorData)
