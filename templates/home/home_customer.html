@@ -97,7 +97,7 @@
                             {% for sensorItem in sensorItemsNotUsed.all %}
                             
                                 <a {% if groups %} href='#' {% endif %} id="linkSensors">
-                                    <div class="card" style="width: 400px" data-bs-toggle="modal" data-bs-target="#selectGroup" onclick="selectSensor('{{sensorItem.pk}}')">
+                                    <div class="card" style="width: 400px" {% if groups %} data-bs-toggle="modal" data-bs-target="#selectGroup" {% endif %} onclick="selectSensor('{{sensorItem.pk}}')">
                                         <div class="card-body">
                                             {% if sensorItem.label %}
                                                 {{ sensorItem.label }}
