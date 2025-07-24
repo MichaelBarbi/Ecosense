@@ -64,27 +64,23 @@
                             {{ ordersGraph|json_script:"ordersGraph-data" }}
                             {{ profits|json_script:"profits-data"}}
                             
-                            <!-- Sensors most purchased -->
-                            {% if mostPurchasedSensors %}
-                                
-                                <div class="box-stats">
-                                    <h2 class="fw-bold">Most Purchased Sensors</h2>
+                            <!-- Sensors most purchased -->                                
+                            <div class="box-stats">
+                                <h2 class="fw-bold">Most Purchased Sensors</h2>
 
-                                    <div class="stats">
+                                <div class="stats">
 
-                                        <div class="btn-group mb-4" role="group">
-                                            <a href="?sensorTime=Today" class="btn {% if sensorTime == 'Today' %} btn-primary {% else %}btn-outline-primary{% endif %}">Today</a>
-                                            <a href="?sensorTime=Week"  class="btn {% if sensorTime == 'Week' %}  btn-primary {% else %}btn-outline-primary{% endif %}">Week</a>
-                                            <a href="?sensorTime=Month" class="btn {% if sensorTime == 'Month' %} btn-primary {% else %}btn-outline-primary{% endif %}">Month</a>
-                                            <a href="?sensorTime=Year"  class="btn {% if sensorTime == 'Year' %}  btn-primary {% else %}btn-outline-primary{% endif %}">Year</a>
-                                        </div>
-
-                                        <canvas id="mostPurchasedSensors"></canvas>
+                                    <div class="btn-group mb-4" role="group">
+                                        <a href="?sensorTime=Today" class="btn {% if sensorTime == 'Today' %} btn-primary {% else %}btn-outline-primary{% endif %}">Today</a>
+                                        <a href="?sensorTime=Week"  class="btn {% if sensorTime == 'Week' %}  btn-primary {% else %}btn-outline-primary{% endif %}">Week</a>
+                                        <a href="?sensorTime=Month" class="btn {% if sensorTime == 'Month' %} btn-primary {% else %}btn-outline-primary{% endif %}">Month</a>
+                                        <a href="?sensorTime=Year"  class="btn {% if sensorTime == 'Year' %}  btn-primary {% else %}btn-outline-primary{% endif %}">Year</a>
                                     </div>
 
+                                    <canvas id="mostPurchasedSensors"></canvas>
                                 </div>
 
-                            {% endif %}
+                            </div>
 
                             <!-- Geographical distribution of sensors -->
                             {% if countries %}
