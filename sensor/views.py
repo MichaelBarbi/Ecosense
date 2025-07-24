@@ -379,7 +379,7 @@ def receive_sensor_data(request):
         code = data.get("code")
         key = data.get("key")
 
-        sensorItems = SensorItem.objects.filter(is_registered=True)
+        sensorItems = SensorItem.objects.filter(is_registered=True, )
         sensor = None
         
         for sensoritem in sensorItems:
@@ -403,19 +403,39 @@ def receive_sensor_data(request):
         # Sensor values
         values = data.get("values", [])
 
+        # Save data inside the db
+        for obj in values:
+            type_name = obj.get("type")
+            value = obj.get("value")
+
+            try:
+                sensor_type = SensorType.objects.get(name=type_name)
+            except Exception as e:
+                return JsonResponse({"error": str(e)}, status=404)
+
+            try:
+                SensorData.objects.create(
+                    type=sensor_type,
+                    value=float(value),
+                    sensorItem=sensor
+                )
+            except Exception as e:
+                return JsonResponse({"error":{str(e)}}, status=404)
+
         # Send data to the group channel via WebSocket
         channel_layer = get_channel_layer()
 
-        async_to_sync(channel_layer.group_send)(
-            f"group_{group.group_id}",
-            {
-                "type": "send_sensor_data",
-                "data": {
-                    "sensor_id": sensor.pk,
-                    "values": values
+        if group:
+            async_to_sync(channel_layer.group_send)(
+                f"group_{group.group_id}",
+                {
+                    "type": "send_sensor_data",
+                    "data": {
+                        "sensor_id": sensor.pk,
+                        "values": values
+                    }
                 }
-            }
-        )
+            )
 
         return JsonResponse({"status": "ok"})
 
