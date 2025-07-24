@@ -1,7 +1,8 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from order.models import Order, OrderItem, OrderStatus
-from sensor.models import Sensor, SensorItem
+from sensor.models import Sensor, SensorData, SensorItem
 from group.models import *
 from sensor.forms import SelectGroupForm
 from django.contrib import messages
@@ -9,6 +10,8 @@ from django.db.models import Sum
 from django.utils.timezone import now
 from collections import defaultdict
 import calendar
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 def unauthorized(request):
 
@@ -192,7 +195,63 @@ def home(request):
                 messages.error(request, f"An error occured while loading the homepage: {str(e)}")
 
         elif hasattr(request.user, 'staff') and request.user.staff.is_technical:
-            pass
+            
+            try:
+
+                # Get all registered sensors
+                registeredSensors = SensorItem.objects.filter(is_registered=True,customer__isnull=False, order__isnull=False)
+
+                # Recover params from query
+                code = request.GET.get('filter_code')
+                customer = request.GET.get('filter_customer')
+
+                if code:
+                    sensor_ids = []
+
+                    for sensor in registeredSensors:
+
+                        if sensor.get_registration_code() == code:
+                            sensor_ids.append(sensor.pk)
+
+                    registeredSensors = registeredSensors.filter(id__in=sensor_ids)
+
+                if customer:
+                    registeredSensors = registeredSensors.filter(customer__user__username=customer)           
+                                   
+                if registeredSensors:
+                    
+                    paginate_by = 20
+
+                    # Create the paginator
+                    paginator = Paginator(registeredSensors, paginate_by)
+
+                    # Recove the page number from querystring
+                    page_number = request.GET.get("page")
+
+                    try:
+                        page_obj = paginator.page(page_number)
+                    except PageNotAnInteger:
+                        page_obj = paginator.page(1)
+                    except EmptyPage:
+                        page_obj = paginator.page(paginator.num_pages)
+
+                    context = {
+                        "title": title,
+                        'registeredSensors': registeredSensors,      
+                        'page_obj': page_obj,     
+                        'paginator': paginator,  
+                        'is_paginated': paginator.num_pages > 1,
+                    }
+
+
+                else:
+                    context = {
+                        "title": title,
+                        "registeredSensors": registeredSensors
+                    }
+
+            except Exception as e:
+                messages.error(request, f"An error occured while loading the homepage: {str(e)}")
 
         else:
             logout(request)

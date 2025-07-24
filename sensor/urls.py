@@ -22,4 +22,5 @@ urlpatterns = [
     path("sensors/items/add", views.sensorItemAdd, name="sensor_items_add"),
     path("sensors/items/<int:pk>/update", views.sensorItemUpdateView, name="sensor_items_update"),
     path("sensors/items/<int:pk>/delete", views.SensorItemDeleteView.as_view(), name="sensor_items_delete"),
+    path("sensors-logs/<int:pk>/", views.RegisteredSensorLogsListView.as_view(), name="sensor_logs")
 ]

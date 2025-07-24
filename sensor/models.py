@@ -30,6 +30,15 @@ class SensorType(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @staticmethod
+    def getSymbolBySensorTypeName(name):
+        sensorType = SensorType.objects.get(name=name)
+
+        if sensorType:
+            return sensorType.symbol
+        
+        return None
 
 
 # Sensors to show in catalog
@@ -91,7 +100,13 @@ class SensorItem(models.Model):
     @property
     def is_bought(self):
         return self.order is not None
-
+    
+    @property
+    def has_data(self):
+        data = SensorData.objects.filter(sensorItem=self)
+        if data:
+            return True
+        return False
 
     # Custom getter functions to retrieve data decrypted
     def get_api_key(self):
