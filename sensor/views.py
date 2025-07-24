@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
 from .models import *
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from order.models import Cart, CartItem
 from user.views import customer_login_required, staff_login_required, technical_login_required
 from order.models import Order
@@ -16,6 +16,30 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.urls import reverse_lazy
 from django.contrib.messages.views import SuccessMessageMixin
+
+@method_decorator([require_GET, technical_login_required], name='dispatch')
+class RegisteredSensorLogsListView(ListView):
+
+    model = SensorData
+    template_name = "sensor/sensor_log.html"
+    context_object_name = 'sensorLogs'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        pk = self.kwargs["pk"]
+
+        context["title"] = f"Sensor n. {pk} Log"
+        context["sensorItem"] = SensorItem.objects.get(pk=pk)
+
+        return context
+
+
+    def get_queryset(self):
+        sensor_pk = self.kwargs["pk"]
+
+        return SensorData.objects.filter(sensorItem__pk=sensor_pk).order_by("-date")
 
 @method_decorator(technical_login_required, name="dispatch")
 class SensorItemDeleteView(SuccessMessageMixin, DeleteView):
@@ -153,9 +177,7 @@ class SensorItemsListView(ListView):
             queryset = queryset.filter(is_registered=False)
 
         return queryset
-    
-    
-    
+     
 
 @method_decorator(staff_login_required, name="dispatch")
 class SensorDeleteView(SuccessMessageMixin, DeleteView):
@@ -405,8 +427,11 @@ def receive_sensor_data(request):
 
         # Save data inside the db
         for obj in values:
+
             type_name = obj.get("type")
             value = obj.get("value")
+
+            obj["unit"] = SensorType.getSymbolBySensorTypeName(type_name)
 
             try:
                 sensor_type = SensorType.objects.get(name=type_name)
@@ -436,6 +461,17 @@ def receive_sensor_data(request):
                     }
                 }
             )
+
+        async_to_sync(channel_layer.group_send)(
+            f"sensor_{sensor.pk}",
+            {
+                "type": "send_sensor_data",
+                "data": {
+                    "sensor_id": sensor.pk,
+                    "values": values
+                }
+            }
+        )
 
         return JsonResponse({"status": "ok"})
 

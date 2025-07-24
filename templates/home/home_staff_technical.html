@@ -1,0 +1,170 @@
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+
+<style>
+
+    main {
+        min-height: 100vh;
+    }
+
+    .ctn {
+        max-width: 900px;
+        min-width: 100%;
+        margin: 25px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+</style>
+{% endblock css %}
+
+{% block content %}
+
+    <div>
+
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+
+                <div class="container ctn">
+
+                    <h1 class="mb-4 fw-bold">Registered Sensors</h1>
+
+                    <p class="d-inline-flex gap-1">
+
+                        <!-- Button to show filters -->
+                        <button class="btn btn-dark" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="collapseExample">
+                            Filters
+                        </button>
+
+                    </p>
+
+                    <div class="collapse mb-4" id="filtersCollapse">
+                        <div class="card card-body">
+
+                            <!-- Filters list -->
+                            <form method="get" action="{% url 'home' %}">
+
+                                <div class="form-group">
+
+                                    <!-- Filter per Registration Code -->
+                                    <div class="form-check form-check-inline my-2" style="padding-left: 0px !important">
+                                        <input class="form-text-input" type="input" name="filter_code" id="filter_code"> 
+                                        <label class="form-check-label" for="filter_code">Registration Code</label>
+                                    </div>
+
+                                    <!-- Filter per Customer -->
+                                    <div class="form-check form-check-inline my-2">
+                                        <input class="form-text-input" type="input" name="filter_customer" id="filter_customer"> 
+                                        <label class="form-check-label" for="filter_customer">Customer</label>
+                                    </div>
+
+                                </div>
+
+                                <button type="submit" class="btn btn-success mt-2">Search</button>
+
+                            </form>
+
+                        </div>
+                    </div>
+
+                    {% if registeredSensors %}
+
+                        {% if is_paginated %}
+                            <nav aria-label="Page navigation example">
+                                <ul class="pagination">
+
+                                    {% if page_obj.number > 1 %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if query_string %}&{{ query_string }}{% endif %}">First</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">{{ page_obj.number }}</a>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}">Next</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% if page_obj.number < page_obj.paginator.num_pages %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}">Last</a>
+                                        </li>
+                                    {% endif %}
+
+                                </ul>
+                            </nav>
+                        {% endif %}
+
+                        <table class="table">
+
+                            <thead>
+                                <th scope="col">Registration Code</th>
+                                <th scope="col">Types</th>
+                                <th scope="col">Customer</th>
+                            </thead>
+
+                            <tbody>
+                                {% for sensorItem in registeredSensors.all %}
+                                
+                                    <tr class="align-middle">
+
+                                        {% if sensorItem.has_data %}
+                                            <td>
+                                                <a href="{% url 'sensor_logs' sensorItem.pk %}" style="color: #000000">
+                                                    <p class="m-0">{{ sensorItem.get_registration_code }}</p>
+                                                </a>
+                                            </td>
+                                        {% else %}
+                                            <td>{{ sensorItem.get_registration_code }}</td>
+                                        {% endif %}
+
+                                        <td>
+                                            <ul style="margin: 0px;">
+                                                {% for type in sensorItem.sensor.types.all %}
+                                                    <li>{{type.name}}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </td>
+
+                                        <td>{{ sensorItem.customer.user.username }}</td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        
+                    {% else %}
+                        <p>No sensors register yet</p>
+                    {% endif %}
+
+                </div>
+            </div>
+        <section>
+    </div>
+
+{% endblock content %}
