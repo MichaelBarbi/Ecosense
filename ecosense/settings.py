@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'user',
     'ticket',
-    'timetable',
     'shipping',
     'payment',
     'order',

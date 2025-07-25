@@ -101,9 +101,9 @@
 
                                         <td>
                                             {% if request.user.customer %}
-                                                <a href="{% url 'order' order.order_id %}">{{ order.order_id }}</a>
+                                                <a href="{% url 'order:order' order.order_id %}">{{ order.order_id }}</a>
                                             {% else %}
-                                                <a href="{% url 'order' order.pk %}">{{ order.pk }}</a>
+                                                <a href="{% url 'order:order' order.pk %}">{{ order.pk }}</a>
                                             {% endif %}
                                         </td>
 
@@ -125,7 +125,7 @@
 
                                         <td>
                                             {% if request.user.customer %}
-                                                <form action="{% url 'order' order.order_id %}" method="post">
+                                                <form action="{% url 'order:order' order.order_id %}" method="post">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-danger refund" 
                                                         {% if order.status >= 4 %}disabled{% endif %}>
@@ -133,7 +133,7 @@
                                                     </button>
                                                 </form>
                                             {% else %}
-                                                <form action="{% url 'order' order.pk %}" method="post">
+                                                <form action="{% url 'order:order' order.pk %}" method="post">
                                                     {% csrf_token %}
                                                     <button type="submit" class="btn btn-danger refund" 
                                                         {% if order.status >= 4%}disabled{% endif %}>

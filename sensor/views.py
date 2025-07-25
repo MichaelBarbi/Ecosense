@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from .models import *
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
-from order.models import Cart, CartItem
+from cart.models import Cart, CartItem
 from user.views import customer_login_required, staff_login_required, technical_login_required
 from order.models import Order
 from django.contrib import messages
