@@ -123,13 +123,13 @@
                                 <div class="card h-100 shadow-sm">
                                     <div class="card-body">
 
-                                        <h5 class="card-title d-flex flex-row">
+                                        <h5 class="card-title d-flex flex-column gap-1">
                                             {% if sensorItem.label %}
-                                                {{ sensorItem.label }}
+                                                <span>{{ sensorItem.label }}</span>
                                             {% else %}
-                                                {{ sensorItem.get_registration_code }}
+                                                <span>{{ sensorItem.get_registration_code }}</span>
                                             {% endif %}
-                                            &nbsp<span id="state-{{ sensorItem.pk }}" class="text-danger">Offline</span>
+                                            <span id="state-{{ sensorItem.pk }}" class="text-danger" style="font-size: 1rem">Offline</span>
                                         </h5>
 
                                         <!-- Card for every type of every sensor -->

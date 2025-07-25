@@ -14,8 +14,6 @@ class CreditCard(models.Model):
         help_text="Digits only. Spaces and dashes are allowed."
     )
 
-
-
     exp_month = models.PositiveSmallIntegerField(
         validators=[
             MinValueValidator(1),

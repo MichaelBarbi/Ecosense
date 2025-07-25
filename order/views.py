@@ -201,28 +201,8 @@ def checkoutView(request):
             if not order:
                 raise ValueError("The order has not been created")
             
-            for cartItem in cart.cartItems.all():
-
-                OrderItem.objects.create(
-                    order=order,
-                    quantity=cartItem.quantity,
-                    sensor=cartItem.sensor,
-                    amount=cartItem.amount
-                )
-
-                # For each orderItem, I need to link n sensorItem still not shipped to the order                
-                for _ in range(0, cartItem.quantity):
-                    
-                    sensorItem = SensorItem.objects.filter(sensor=cartItem.sensor, order=None).first()
-                    
-                    if not sensorItem:
-                        raise ValueError("Sensor item not found")
-
-                    sensorItem.order = order
-
-                    sensorItem.save()                    
+            Order.assign_sensor_items_from_cart_to_order(cart=cart, order=order)                  
             
-            # Delete the customer's cart
             cart.delete()
 
             return redirect("home")

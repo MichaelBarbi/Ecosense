@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 from user.models import Customer
-from sensor.models import Sensor
+from sensor.models import Sensor, SensorItem
 from payment.models import CreditCard
 
 class OrderStatus(models.IntegerChoices):
@@ -31,6 +31,33 @@ class Order(models.Model):
             models.CheckConstraint(check=models.Q(total_price__gte=0), name="order_totalPrice_non_negative"),
             models.UniqueConstraint(fields=["customer", "order_id"], name="unique_order_id_per_customer"),
         ]
+
+    @classmethod
+    def assign_sensor_items_from_cart_to_order(cls, cart, order):
+
+        if not cart:
+            raise ValueError("Cart is absent")
+        
+        if not order:
+            raise ValueError("Order is absent")
+
+        for cart_item in cart.cartItems.all():
+            
+            OrderItem.objects.create(
+                order=order,
+                quantity=cart_item.quantity,
+                sensor=cart_item.sensor,
+                amount=cart_item.amount
+            )
+
+            for _ in range(cart_item.quantity):
+                sensor_item = SensorItem.objects.filter(sensor=cart_item.sensor, order=None).first()
+
+                if not sensor_item:
+                    raise ValueError(f"No available sensor item for {cart_item.sensor}")
+
+                sensor_item.order = order
+                sensor_item.save()
 
     @staticmethod
     def getOrderStatusList():
