@@ -1,4 +1,4 @@
-from .models import Cart
+from cart.models import Cart
 
 def cart_context(request):
     cart = None

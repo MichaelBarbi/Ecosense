@@ -83,7 +83,7 @@
                             </tbody>
                         </table>
 
-                        <a href="{% url 'cart' %}" ><button style="margin-bottom: 1.5em" type="button" class="btn btn-dark me-2">Modify the cart</button></a>
+                        <a href="{% url 'cart:cart' %}" ><button style="margin-bottom: 1.5em" type="button" class="btn btn-dark me-2">Modify the cart</button></a>
 
                         <hr class="hr">
 
@@ -104,7 +104,7 @@
                             {% endif %}
                         </div>
 
-                        <form method="post" action="{% url 'checkout' %}">
+                        <form method="post" action="{% url 'order:checkout' %}">
                             {% csrf_token %}
                             
                             <!-- Credit Card -->

@@ -13,8 +13,11 @@ urlpatterns = [
     # Sensor routes
     path('', include("sensor.urls")),
 
-    # Order and Cart routes
-    path('', include("order.urls")),
+    # Cart routes
+    path("cart", include("cart.urls")),
+
+    # Order routes
+    path('orders', include("order.urls")),
 
     # Group routes
     path('groups/', include("group.urls")),
