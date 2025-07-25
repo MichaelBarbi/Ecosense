@@ -12,7 +12,7 @@ class TicketMessageAuthorType(models.TextChoices):
 class Ticket(models.Model):
 
     status = models.CharField(max_length=10, choices=TicketStatus.choices, default=TicketStatus.OPENED)
-    subject = models.CharField(max_length=50)
+    subject = models.CharField(max_length=100)
     customer = models.ForeignKey(Customer, related_name="tickets", on_delete=models.CASCADE)
     staff = models.ForeignKey(Staff, related_name="tickets", on_delete=models.SET_NULL, null=True, blank=True)
 

@@ -10,42 +10,36 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('payment', '0001_initial'),
         ('user', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Order',
+            name='Cart',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
                 ('total_price', models.DecimalField(decimal_places=2, default=0.0, max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
-                ('status', models.IntegerField(choices=[(1, 'Pending'), (2, 'Awaiting Payment'), (3, 'Awaiting Shipment'), (4, 'Shipped'), (5, 'Completed'), (6, 'Cancelled')], default=1)),
-                ('order_id', models.PositiveIntegerField(blank=True, null=True)),
-                ('arrived_at', models.DateField(blank=True, null=True)),
-                ('credit_card', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='payment.creditcard')),
-                ('customer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to='user.customer')),
+                ('customer', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='cart', to='user.customer')),
             ],
             options={
-                'verbose_name': 'Order',
-                'verbose_name_plural': 'Orders',
-                'db_table': 'db_order',
+                'verbose_name': 'Cart',
+                'verbose_name_plural': 'Carts',
+                'db_table': 'cart',
                 'ordering': ['id'],
             },
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name='CartItem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('quantity', models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1)])),
                 ('amount', models.DecimalField(decimal_places=2, default=0.0, max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orderItems', to='order.order')),
+                ('cart', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cartItems', to='cart.cart')),
             ],
             options={
-                'verbose_name': 'Order item',
-                'verbose_name_plural': 'Order items',
-                'db_table': 'order_item',
+                'verbose_name': 'Cart item',
+                'verbose_name_plural': 'Cart items',
+                'db_table': 'cart_item',
                 'ordering': ['id'],
             },
         ),
