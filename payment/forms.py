@@ -31,8 +31,8 @@ class CreditCardForm(forms.ModelForm):
         if not normalized.isdigit():
             raise ValidationError("Card number must contain only digits.")
         
-        if len(normalized) < 13 or len(normalized) > 19:
-            raise ValidationError("Card number must be between 13 and 19 digits.")
+        if len(normalized) != 16:
+            raise ValidationError("Card number must be 16 digits.")
         
         return normalized
 
