@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from common.signals import update_total
-from models import CartItem
+from .models import CartItem
 
 @receiver(pre_save, sender=CartItem)
 def update_cart_item_amount(sender, instance, **kwargs):
