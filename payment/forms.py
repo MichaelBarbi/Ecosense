@@ -15,6 +15,11 @@ class CreditCardForm(forms.ModelForm):
         help_text="Enter the CVC (3 or 4 digits)."
     )
 
+    exp_month = forms.IntegerField(
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 12}),
+        help_text="Enter expiration month (1-12)."
+    )
+
     class Meta:
         model = CreditCard
         exclude = []

@@ -18,7 +18,7 @@ import os
 load_dotenv()
 
 # Debug
-DEBUG = os.getenv("DEBUG")
+DEBUG = True if os.getenv("DEBUG") == "True" else False
 APPEND_SLASH = os.getenv("APPEND_SLASH")
 
 # SECURITY WARNING: keep the secret key used in production secret!

@@ -133,15 +133,11 @@
                                 
                                     <tr class="align-middle">
 
-                                        {% if sensorItem.has_data %}
-                                            <td>
-                                                <a href="{% url 'sensor_logs' sensorItem.pk %}" style="color: #000000">
-                                                    <p class="m-0">{{ sensorItem.get_registration_code }}</p>
-                                                </a>
-                                            </td>
-                                        {% else %}
-                                            <td>{{ sensorItem.get_registration_code }}</td>
-                                        {% endif %}
+                                        <td>
+                                            <a href="{% url 'sensor_logs' sensorItem.pk %}" style="color: #000000">
+                                                <p class="m-0">{{ sensorItem.get_registration_code }}</p>
+                                            </a>
+                                        </td>
 
                                         <td>
                                             <ul style="margin: 0px;">

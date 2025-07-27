@@ -155,6 +155,8 @@ def home(request):
                         for month in calendar.month_name[1:]
                     ]
 
+                    totalOrders = orders_current_year.count()
+
                     #----------------------------------------------------------------------------------------------------
 
                     # (4) Profit
@@ -181,7 +183,8 @@ def home(request):
                         "countries": countries,
                         "ordersGraph": ordersGraph,
                         "profits": profits,
-                        "totalProfit": totalProfit_str
+                        "totalProfit": totalProfit_str,
+                        "totalOrders": totalOrders
                     }
                 
                 else:
