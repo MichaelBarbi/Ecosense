@@ -54,7 +54,7 @@
                     <!-- Show the sensor form -->
                     {% if addSensorForm %}
 
-                        <form action="" method="post">
+                        <form action="{% url 'sensors_add' %}" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
 
                             {{ addSensorForm|crispy }}

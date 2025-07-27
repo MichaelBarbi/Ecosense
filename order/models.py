@@ -3,6 +3,7 @@ from django.db import models
 from user.models import Customer
 from sensor.models import Sensor, SensorItem
 from payment.models import CreditCard
+import os
 
 class OrderStatus(models.IntegerChoices):
     PENDING = 1, "Pending"
@@ -57,6 +58,14 @@ class Order(models.Model):
                     raise ValueError(f"No available sensor item for {cart_item.sensor}")
 
                 sensor_item.order = order
+
+                if os.getenv("DEBUG") == "True":
+                    with open("order/sensorsdata.txt", "a") as f:
+                        f.write(sensor_item.get_registration_code() + "\n")
+                        f.write(sensor_item.get_password() + "\n")
+                        f.write(sensor_item.get_api_key() + "\n")
+                        f.write("--------------------------------------" + "\n")
+
                 sensor_item.save()
 
     @staticmethod

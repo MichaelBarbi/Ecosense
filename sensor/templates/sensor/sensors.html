@@ -39,7 +39,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
 
-                    <form method="POST" action="#" id="updateSensorForm">
+                    <form method="POST" action="#" id="updateSensorForm" enctype="multipart/form-data">
                         {% csrf_token %}
 
                         <div class="modal-header">
@@ -148,7 +148,7 @@
 
                                         <td>{{ sensor.quantity }}</td>
 
-                                        <td>{{ sensor.price}} €</td>
+                                        <td style="width: 70px">{{ sensor.price}} €</td>
 
                                         <td>
                                             {% if not sensor.is_in_orders%}

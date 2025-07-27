@@ -6,6 +6,7 @@ from ecosense import settings
 from sensor.models import SensorType
 from sensor.utils.token_utils import generate_api_key, generate_unique_password, generate_unique_registration_code
 from .models import *
+import os
 
 # Pre-save to update the amount field before saving
 @receiver(pre_save, sender=OrderItem)
@@ -205,15 +206,19 @@ def create_initial_data(sender, **kwargs):
                     if not sensorItem:
                         raise ValueError("SensorItem has not been got")
                     
+                    order.status = OrderStatus.COMPLETED
+                    order.save()
+                    
                     sensorItem.order = order
                     sensorItem.customer = order.customer
                     sensorItem.is_registered = True
 
-                    with open("order/sensorsdata.txt", "a") as f:
-                        f.write(sensorItem.get_registration_code() + "\n")
-                        f.write(sensorItem.get_password() + "\n")
-                        f.write(sensorItem.get_api_key() + "\n")
-                        f.write("--------------------------------------" + "\n")
+                    if os.getenv("DEBUG") == "True":
+                        with open("order/sensorsdata.txt", "a") as f:
+                            f.write(sensorItem.get_registration_code() + "\n")
+                            f.write(sensorItem.get_password() + "\n")
+                            f.write(sensorItem.get_api_key() + "\n")
+                            f.write("--------------------------------------" + "\n")
 
                     sensorItem.save()
 

@@ -268,25 +268,35 @@ def create_initial_data(sender, **kwargs):
             }
         ]
 
+        # Create Staff roles
+        for name in STAFF_ROLES:
+            StaffRole.objects.create(
+                name=name
+            )
+
         for data in staff_data:
 
             user_data = data["user"]
             roles_names = data["roles"]
 
-            user, created = User.objects.get_or_create(username=user_data["username"], defaults=user_data)
+            user = User.objects.create_user(
+                username=user_data["username"],
+                password=user_data["password"],  
+                email=user_data["email"],
+                first_name=user_data["first_name"],
+                last_name=user_data["last_name"],
+            )   
 
-            if created:
-                user.set_password(user_data["password"])
-                user.save()
-
-            staff, _ = Staff.objects.get_or_create(user=user)
+            staff = Staff.objects.create(
+                user=user
+            )
 
             # Associate the roles
             for role_name in roles_names:
                 try:
                     role = StaffRole.objects.get(name=role_name)
                     staff.roles.add(role)
-                except StaffRole.DoesNotExist:
-                    pass 
+                except StaffRole.DoesNotExist as e:
+                    print("Error occured while assign roles to staff: " + str(e))
                 
             staff.save()

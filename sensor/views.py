@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from cart.models import Cart, CartItem
 from user.views import customer_login_required, staff_login_required, technical_login_required
-from order.models import Order
+from order.models import Order, OrderStatus
 from django.contrib import messages
 from .forms import *
 from django.http import JsonResponse
@@ -580,7 +580,12 @@ def registerSensorView(request):
                     reg_code = sensor.get_registration_code()
                     pwd = sensor.get_password()
 
-                    if reg_code == registerSensorItemForm.cleaned_data["registration_code"] and pwd == registerSensorItemForm.cleaned_data["password"]:                        
+                    if reg_code == registerSensorItemForm.cleaned_data["registration_code"] and pwd == registerSensorItemForm.cleaned_data["password"]:    
+
+                        if sensor.order.status != OrderStatus.COMPLETED:
+                            messages.error(request, "The inserted register has not been delivered yet.")
+                            return redirect("register_sensor")   
+                                         
                         sensorItemToRegister = sensor
 
                         break
