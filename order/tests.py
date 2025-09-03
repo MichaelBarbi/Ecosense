@@ -154,7 +154,7 @@ class CheckoutViewTest(TestCase):
         self.cart.delete()
         self.customer.save()
 
-        response = self.client.post(reverse("order:checkout"), data=self.valid_card_data, follow=True)
+        response = self.client.post(reverse("checkout"), data=self.valid_card_data, follow=True)
 
         # Verify if the response has been redirect to checkout page again after the failure
         self.assertRedirects(response, reverse("cart:cart"))
@@ -209,7 +209,7 @@ class CheckoutViewTest(TestCase):
     # Verify that the order has been succesfully created
     def test_valid_checkout_creates_order_and_redirects(self):
 
-        response = self.client.post(reverse("order:checkout"), data=self.valid_card_data)
+        response = self.client.post(reverse("checkout"), data=self.valid_card_data)
 
         # Verify that the order has been created
         ordersCount = Order.objects.filter(customer=self.customer).count()
@@ -228,7 +228,7 @@ class CheckoutViewTest(TestCase):
     # Verify that the order matches the total price of the cart and his orderItems are equal to cartItems. 
     def test_orderitems_match_cartitems(self):
 
-        response = self.client.post(reverse("order:checkout"), data=self.valid_card_data)
+        response = self.client.post(reverse("checkout"), data=self.valid_card_data)
 
         order = Order.objects.get(customer=self.customer)
         order_items = order.orderItems.all()
@@ -271,7 +271,7 @@ class CheckoutViewTest(TestCase):
     # Verify that after the creation of the order, a number of sensorItems requested by OrderItems have been selected => SensorItem order attribute = this order
     def test_sensor_items_associated_to_order(self):
 
-        self.client.post(reverse("order:checkout"), data=self.valid_card_data)
+        self.client.post(reverse("checkout"), data=self.valid_card_data)
         order = Order.objects.get(customer=self.customer)
 
         count = SensorItem.objects.filter(order=order).count()

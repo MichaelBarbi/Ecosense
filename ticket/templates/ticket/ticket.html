@@ -90,6 +90,12 @@
                                     
                                 </form>
                             </div>
+                        {% else %}
+
+                            <div id="back">
+                                <button type="button" class="btn btn-dark"><a href="{% url 'ticket:tickets' %}">Back</a></button>
+                            </div>
+                            
                         {% endif %}
 
                     {% else %}

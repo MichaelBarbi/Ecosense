@@ -1,8 +1,59 @@
 {% extends "base.html" %}
 
+{% load bootstrap_filters %}
+{% load crispy_forms_tags %}
+
+{% block css %}
+{{block.super}}
+
+<style>
+
+    main {
+        min-height: 100vh;
+    }
+
+    .ctn {
+        max-width: 900px;
+        min-width: 100%;
+        margin: 25px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+
+</style>
+{% endblock css %}
+
 {% block content %}
-  <div class="text-center mt-5">
-    <h1>Oops! Page not Found (404)</h1>
-    <a href="{% url 'home' %}" class="btn btn-success mt-3">Get back to home</a>
-  </div>
-{% endblock %}
+
+    <main>
+        <section class="py-5">
+            <div class="container text-left">
+
+                <!-- Bootstrap alerts -->
+                {% if messages %}
+                    {% for message in messages %}
+                    
+                        <div class="alert alert-{{ message.tags|bootstrap_alert_tag }}" role="alert">
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+                {% endif %}
+                    
+                <div class="container ctn" >
+
+                    <h1 class="mb-4 fw-bold">Ops... Page not found</h1>
+
+                    <p>
+                        <a href="{% url 'home' %}" class="btn btn-success mt-3">Get back to home</a>
+                    </p>
+
+                </div>
+            </div>
+        <section>
+    </main>
+
+{% endblock content %}

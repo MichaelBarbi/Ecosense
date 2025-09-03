@@ -2,3 +2,4 @@ db/
 .env*
 static/admin
 order/*.txt
+*.pdf

@@ -192,7 +192,7 @@ def registerView(request):
     else:
         form = CustomerRegistrationForm()
 
-    return render(request, "register.html", {"form": form})
+    return render(request, "register.html", {"form": form, "title": "Register"})
 
 def getTypeOfUser(request):
     
