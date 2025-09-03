@@ -4,14 +4,14 @@
 {{ block.super }}
 
 <style>
-
     #overlayCard {
         background: linear-gradient(to bottom right, #28a745, #212529);
-        height: 100vh;
+        min-height: 100vh;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start; /* Cambiato da center a flex-start */
         padding: 5vh 0px;
+        box-sizing: border-box; /* Importante per includere padding nell'altezza */
     }
 
     .login-wrapper {
@@ -22,6 +22,9 @@
         width: 80vh;
         max-width: 90%;
         display: inline-block;
+        max-height: 90vh; /* Altezza massima */
+        overflow-y: auto; /* Scroll interno quando necessario */
+        margin: auto 0; /* Centra verticalmente */
     }
 
     .login-form {
@@ -38,10 +41,15 @@
     }
 
     @media (max-width: 768px) {
-    .form-column-wrapper {
-        flex-direction: column;
+        .form-column-wrapper {
+            flex-direction: column;
+        }
+        
+        .login-wrapper {
+            padding: 20px 15px;
+            max-height: 95vh;
+        }
     }
-}
 
     .form-column {
         margin: 0px auto;
@@ -121,7 +129,6 @@
         background: #218838;
     }
 
-
     .signup-text {
         text-align: center;
         margin-top: 5px;
@@ -153,111 +160,112 @@
 {% endblock css %}
 
 {% block content %}
-    <div id="overlayCard">
-        <div class="login-wrapper">
-            <form class="login-form" method="post" action="{% url 'register' %}">
-                {% csrf_token %}
-                <h2>ECOSENSE</h2>
+    <main>
+        <div id="overlayCard">
+            <div class="login-wrapper">
+                <form class="login-form" method="post" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    <h2>ECOSENSE</h2>
 
-                <div class="form-column-wrapper">
-                    <div class="form-column">
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Username" name="username" required />
-                            </label>
-                            <span class="fieldError">{{ form.username.errors }}</span>
+                    <div class="form-column-wrapper">
+                        <div class="form-column">
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Username" name="username" required />
+                                </label>
+                                <span class="fieldError">{{ form.username.errors }}</span>
+                            </div>
+            
+                            <div class="input-group">
+                                <label>
+                                    <input type="email" placeholder="Email" name="email" required />
+                                </label>
+                                <span class="fieldError">{{ form.email.errors }}</span>
+                            </div>
+            
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="First name" name="first_name" required />
+                                </label>
+                                <span class="fieldError">{{ form.first_name.errors }}</span>
+                            </div>
+            
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Last name" name="last_name" required />
+                                </label>
+                                <span class="fieldError">{{ form.last_name.errors }}</span>
+                            </div>
+            
+                            <div class="input-group">
+                                <label>
+                                    <input type="password" placeholder="Password" name="password" required />
+                                </label>
+                                <span class="fieldError">{{ form.password.errors }}</span>
+                            </div>
+            
+                            <div class="input-group">
+                                <label>
+                                    <input type="password" placeholder="Confirm password" name="confirm_password" required />
+                                </label>
+                                <span class="fieldError">{{ form.confirm_password.errors }}</span>
+                            </div>
                         </div>
-        
-                        <div class="input-group">
-                            <label>
-                                <input type="email" placeholder="Email" name="email" required />
-                            </label>
-                            <span class="fieldError">{{ form.email.errors }}</span>
-                        </div>
-        
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="First name" name="first_name" required />
-                            </label>
-                            <span class="fieldError">{{ form.first_name.errors }}</span>
-                        </div>
-        
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Last name" name="last_name" required />
-                            </label>
-                            <span class="fieldError">{{ form.last_name.errors }}</span>
-                        </div>
-        
-                        <div class="input-group">
-                            <label>
-                                <input type="password" placeholder="Password" name="password" required />
-                            </label>
-                            <span class="fieldError">{{ form.password.errors }}</span>
-                        </div>
-        
-                        <div class="input-group">
-                            <label>
-                                <input type="password" placeholder="Confirm password" name="confirm_password" required />
-                            </label>
-                            <span class="fieldError">{{ form.confirm_password.errors }}</span>
+
+                        <div class="form-column">
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Full name" name="full_name" required />
+                                </label>
+                                <span class="fieldError">{{ form.full_name.errors }}</span>
+                            </div>
+
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Address" name="address" required />
+                                </label>
+                                <span class="fieldError">{{ form.address.errors }}</span>
+                            </div>
+
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="City" name="city" required />
+                                </label>
+                                <span class="fieldError">{{ form.city.errors }}</span>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Province" name="province" required />
+                                </label>
+                                <span class="fieldError">{{ form.province.errors }}</span>
+                            </div>
+
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Postal code" name="postal_code" required />
+                                </label>
+                                <span class="fieldError">{{ form.postal_code.errors }}</span>
+                            </div>
+
+                            <div class="input-group">
+                                <label>
+                                    <input type="text" placeholder="Country" name="country" required />
+                                </label>
+                                <span class="fieldError">{{ form.country.errors }}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-column">
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Full name" name="full_name" required />
-                            </label>
-                            <span class="fieldError">{{ form.full_name.errors }}</span>
-                        </div>
+                    <button type="submit" class="login-button">Sign Up</button>
 
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Address" name="address" required />
-                            </label>
-                            <span class="fieldError">{{ form.address.errors }}</span>
-                        </div>
+                    <p class="signup-text">Already have an account?<a href="/login/"> Sign in now</a></p>
 
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="City" name="city" required />
-                            </label>
-                            <span class="fieldError">{{ form.city.errors }}</span>
-                        </div>
-                        
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Province" name="province" required />
-                            </label>
-                            <span class="fieldError">{{ form.province.errors }}</span>
-                        </div>
-
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Postal code" name="postal_code" required />
-                            </label>
-                            <span class="fieldError">{{ form.postal_code.errors }}</span>
-                        </div>
-
-                        <div class="input-group">
-                            <label>
-                                <input type="text" placeholder="Country" name="country" required />
-                            </label>
-                            <span class="fieldError">{{ form.country.errors }}</span>
-                        </div>
+                    <div class="col text-center">
+                        <button id="back" type="button" class="btn btn-dark"><a href="{% url 'home' %}">Back</a></button>
                     </div>
-                </div>
-
-                <button type="submit" class="login-button">Sign Up</button>
-
-                <p class="signup-text">Already have an account?<a href="/login/"> Sign in now</a></p>
-
-                <div class="col text-center">
-                    <button id="back" type="button" class="btn btn-dark"><a href="{% url 'home' %}">Back</a></button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+    </main>
 {% endblock content %}
-

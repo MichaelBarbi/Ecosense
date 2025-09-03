@@ -128,7 +128,7 @@ class OrdersListView(ListView):
 
 
 # GET => Get checkout page
-# POST => Comlpete an order
+# POST => Complete an order
 @customer_login_required
 def checkoutView(request):
 
@@ -209,5 +209,5 @@ def checkoutView(request):
 
         except Exception as e:
             messages.error(request, f"Checkout submission error: {str(e)}")
-            return redirect("order:checkout")
+            return redirect("checkout")
   

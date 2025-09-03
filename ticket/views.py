@@ -25,6 +25,7 @@ def TicketMessagesView(request, pk):
             
             canAnswer = False
 
+
             if hasattr(request.user, "customer"):
                 # Verify that the customer is the same as the ticket customer
                 if request.user.customer == ticket.customer:
@@ -36,6 +37,9 @@ def TicketMessagesView(request, pk):
                 if not ticket.staff or ticket.staff == request.user.staff:
                     canAnswer = True
 
+            if ticket.status == TicketStatus.CLOSED:
+                canAnswer = False
+                
             # Get the ticket form
             ticketViewForm = TicketViewForm(instance=ticket)
 

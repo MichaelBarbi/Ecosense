@@ -104,7 +104,7 @@
                             {% endif %}
                         </div>
 
-                        <form method="post" action="{% url 'order:checkout' %}">
+                        <form method="post" action="{% url 'checkout' %}">
                             {% csrf_token %}
                             
                             <!-- Credit Card -->

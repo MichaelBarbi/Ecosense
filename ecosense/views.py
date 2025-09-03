@@ -12,6 +12,11 @@ from collections import defaultdict
 import calendar
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+def pageNotFound(request):
+
+    return render(request, template_name="404.html", context={
+        "title": "Page Not Found"
+    })
 
 def unauthorized(request):
 
