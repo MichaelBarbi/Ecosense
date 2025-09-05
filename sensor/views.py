@@ -157,13 +157,24 @@ class SensorItemsListView(ListView):
         queryset = SensorItem.objects.select_related("sensor").all()
 
         # Get the params
-        sensor_name_filter = self.request.GET.get("filter_sensor_name")
+        sensor_registration_code_filter = self.request.GET.get("filter_registration_code")
         sensor_select_filter = self.request.GET.get("filter_sensor")
         customer_filter = self.request.GET.get("filter_customer")
         is_registered = self.request.GET.get("is_registered")
 
-        if sensor_name_filter:
-            queryset = queryset.order_by("sensor__name")
+        if sensor_registration_code_filter:
+            
+            # Get all sensor items and filter by decrypted registration code
+            sensor_items = SensorItem.objects.all()
+            matching_ids = []
+            
+            for sensor_item in sensor_items:
+                decrypted_code = sensor_item.get_registration_code()
+                if decrypted_code and decrypted_code.startswith(sensor_registration_code_filter):
+                    matching_ids.append(sensor_item.id)
+            
+            # Filter the queryset based on matching IDs
+            queryset = queryset.filter(id__in=matching_ids)    
 
         if sensor_select_filter:
             queryset = queryset.filter(sensor__name=sensor_select_filter)

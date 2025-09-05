@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from payment.forms import CreditCardForm
+from sensor.forms import SensorItemAddForm
 from sensor.models import SensorItem, SensorType
 from .models import Customer, Order
 from shipping.models import ShippingAddress
@@ -8,7 +9,6 @@ from payment.models import CreditCard
 from django.contrib.auth.models import User
 from cart.models import *
 from datetime import date
-
 
 class CheckoutViewTest(TestCase):
 
@@ -156,10 +156,12 @@ class CheckoutViewTest(TestCase):
 
         response = self.client.post(reverse("checkout"), data=self.valid_card_data, follow=True)
 
-        # Verify if the response has been redirect to checkout page again after the failure
+        # Verify if the response has been redirect to cart page again after the failure
         self.assertRedirects(response, reverse("cart:cart"))
+
         # Obtain a list with all django messages
         messages = list(response.wsgi_request._messages)
+
         # Verify that the error message that I raise is actually present
         self.assertIn("Customer has no cart", str(messages[0]))
 
@@ -277,3 +279,114 @@ class CheckoutViewTest(TestCase):
         count = SensorItem.objects.filter(order=order).count()
 
         self.assertEqual(count, 3)
+
+    """
+    Verify that a new sensor item is only added if it passes certain safety checks.
+
+    - Registration Code
+        - Must be unique
+        - Must have the format: XXXXX-XXXXX-XXXXX
+    - Password
+        - Must be validated by django password validator
+    - Api Key
+        - Must be unique
+        - Must be validated by django password validator
+    - Sensor
+        - Must be an existing sensor
+    """ 
+    def test_adding_a_sensor_item(self):
+
+        #Set up data
+
+        newSensor = Sensor.objects.create(
+            name="Sensor Test",
+            description="Sensor Test Description",
+            price=3.99
+        )
+        
+        SensorItem.objects.create(
+            sensor=newSensor,
+            registration_code="AAAAA-AAAAA-AAAAA",
+            is_registered=False,
+            api_key="h6Ar5rc!tgyvftdeydedd",
+            order=None,
+            password="u67v6Axeyvu!vrt3xety3",
+            label="",
+            customer=None,
+            group=None
+        )
+
+        # Django password validators
+        # - Password can't have a length < 8
+        # - Password cannot be too common
+        # - Password can't be all numbers. It needs at least 1 not numeric character 
+        
+        test_cases = [
+            # The registration code has already been used
+            {"registration_code": "AAAAA-AAAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "aaaaa-aaaaa-aaaaa", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The length of the registration code is too short
+            {"registration_code": "AAAA-AAAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-AAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-AAAAA-AAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The length of the registration code is too long
+            {"registration_code": "1AAAAA-AAAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-1AAAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-AAAAA-1AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA1-AAAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-AAAAA1-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-AAAAA-AAAAA1", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The registration code can't accept not alphanumerical characters
+            {"registration_code": "AA!!A-12#44-A$&%S", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "BBBBA-BBBBA-BSBB!", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The position of the symbol '-' for reregistration code is invalid
+            {"registration_code": "AAAAAAAAAAAAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAAAAAAA-AAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "AAAAA-AAAAAAAAAA", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "-AAAAA-AAAAA-AAAAA-", "password": "743Ar674v6ddd56c!", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The password length is < 8 characters
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "1qaz", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "1qaz!d4", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The password can't be too common
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "football", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "asdfghjkl", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The password can't be only numerical
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "123456789", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "783465643856435634343443434", "api_key": "743Ar674v6ddd56c!", "sensor": newSensor.id, "valid": False},
+
+            # The api key has already been used
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hh2ggy3t4fvrtgAFAF", "api_key": "h6Ar5rc!tgyvftdeydedd", "sensor": newSensor.id, "valid": False},
+
+            # The api key length is < 8 characters
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "1g2r", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "gde!ft2", "sensor": newSensor.id, "valid": False},
+
+            # The api key can't be too common
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "football", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "asdfghjkl", "sensor": newSensor.id, "valid": False},
+
+            # The api key can't be only numerical
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "123456789", "sensor": newSensor.id, "valid": False},
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "783465643856435634343443434", "sensor": newSensor.id, "valid": False},
+
+            # The sensor ID passed doesn't exist
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "uy6v54cGYFT!yguytefty22", "sensor": 9999, "valid": False},
+
+            # Positive cases
+            {"registration_code": "1AAAA-AAAAA-AAAA1", "password": "hude6tf54e4!hgygty", "api_key": "uy6v54cGYFT!yguytefty22", "sensor": newSensor.id, "valid": True},
+            {"registration_code": "BAAAA-AAAAA-AAAAA", "password": "hude226tf54e4!hgygty", "api_key": "uy622v54cGYFT!yguytefty22", "sensor": newSensor.id, "valid": True},
+            {"registration_code": "12345-12345-12345", "password": "hude6tf5433e4!hgygty", "api_key": "uy6v5324cGYFT!yguytefty22", "sensor": newSensor.id, "valid": True},
+            {"registration_code": "swsww-12345-deded", "password": "hude6tf54e14!hgygty", "api_key": "uy6v54cGYF1T!yguytefty22", "sensor": newSensor.id, "valid": True},
+        ]
+
+        for case in test_cases:
+            with self.subTest(case=case):
+                form = SensorItemAddForm(data=case)                
+                self.assertEqual(form.is_valid(), case["valid"])
